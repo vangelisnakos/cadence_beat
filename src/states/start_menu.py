@@ -11,7 +11,7 @@ class StartMenu(state.State):
 
     def update(self, variables):
         for button in self.buttons:
-            if button.is_clicked(self.app.right_click):
+            if button.is_clicked(self.app):
                 if button.text == "Create Metronome":
                     new_state = create_metronome.CreateMetronome(self.app)
                     new_state.enter_state()

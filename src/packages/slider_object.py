@@ -61,11 +61,7 @@ class Slider:
         pygame.draw.circle(surface, self.handle_color, (hx, hy), self.ball_radius)
 
     def draw_value(self, surface):
-        value_surf = self.font.render(str(self.value), True, self.text_color)
-        surface.blit(value_surf, (self.rect.right * 1.01, self.rect.y + self.rect.height // 2 - self.font.get_height() // 2))
-
-    def draw_name(self, surface):
-        text_surf = self.name_font.render(self.name, True, self.text_color)
+        text_surf = self.name_font.render(f"{self.name}: {self.value}", True, self.text_color)
         text_rect = text_surf.get_rect(center=self.rect.center)
         text_rect.y -= self.rect.height
         surface.blit(text_surf, text_rect)
@@ -80,7 +76,6 @@ class Slider:
         self.draw_line(surface)
         self.draw_ball(surface)
         self.draw_value(surface)
-        self.draw_name(surface)
 
     def update(self, is_right_click: bool):
         mouse_x, mouse_y = pygame.mouse.get_pos()

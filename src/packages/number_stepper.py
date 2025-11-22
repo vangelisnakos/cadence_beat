@@ -20,10 +20,12 @@ class NumberStepper:
         self.min_value = min_value
         self.max_value = max_value
         self.step = step
-        self.value = 0
+        self.value = min_value
         self.font = font or utils.get_default_font(size=config.DEFAULT_FONT_SIZE - 2)
         self.name = name
-        self.name_font = utils.get_font_given_rect_and_text(self.rect, self.name)
+        text_rect = self.rect.copy()
+        text_rect.width *= 0.8
+        self.name_font = utils.get_font_given_rect_and_text(text_rect, self.name)
 
         w = rect.width
         h = rect.height

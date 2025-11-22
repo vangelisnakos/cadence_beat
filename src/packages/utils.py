@@ -22,9 +22,9 @@ def get_font_given_rect_and_text(rect: pygame.Rect, text: str) -> pygame.font.Fo
         font_size -= 1
     return font
 
-def get_blit_text(rect: pygame.Rect, text: str):
+def get_blit_text(rect: pygame.Rect, text: str, font: pygame.font.Font | None = None):
     """Draws text in the rect."""
-    text_font = get_font_given_rect_and_text(rect, text)
+    text_font = font or get_font_given_rect_and_text(rect, text)
     text_surf = text_font.render(text, True, config.WHITE)
     text_rect = text_surf.get_rect(center=rect.center)
     return text_surf, text_rect

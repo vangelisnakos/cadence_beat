@@ -52,10 +52,11 @@ class Button:
         self.draw_edge(surface)
         self.draw_text(surface)
 
-    def is_clicked(self, is_right_clicked: bool):
+    def is_clicked(self, app):
         self.clicked = False
-        if is_right_clicked:
+        if app.right_click:
             mouse_pos = pygame.mouse.get_pos()
             if self.rect.collidepoint(mouse_pos):
+                app.right_click = False
                 self.clicked = True
         return self.clicked

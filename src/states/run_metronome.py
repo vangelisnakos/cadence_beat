@@ -20,43 +20,51 @@ class RunMetronome(state.State):
         pygame.mixer.init()
         self.sound = self.load_sound()
 
+        self.warmuping = True
+        self.cooldowning = True
         self.interval = 60.0 / metronome_values["bpm"]
+        self.warmup = 60 * metronome_values["warm-up"]
+        self.cooldown = 60 * metronome_values["cooldown"]
+        self.cycles = metronome_values["cycles"]
+        self.current_cycle = 1
         self.next_tick = time.time()
         self.start_time = self.next_tick
-        self.next_print = self.start_time + 1
         self.remaining = metronome_values["run_min"] * 60 + metronome_values["run_sec"]
 
-        self.running = True
+        self.running = False
         self.run_duration = self.remaining
-        self.run_timer_rect = pygame.Rect(0, config.BOARD_HEIGHT // 3, config.BOARD_WIDTH // 3, config.BOARD_HEIGHT)
+        self.run_timer_rect = pygame.Rect(config.BOARD_WIDTH // 4, config.BOARD_HEIGHT // 2, config.BOARD_WIDTH // 2, config.BOARD_HEIGHT)
         self.run_timer_font = utils.get_font_given_rect_and_text(self.run_timer_rect, self.get_elapsed_run_time())
 
         self.resting = False
         self.rest_duration = metronome_values["rest_min"] * 60 + metronome_values["rest_sec"]
-        self.rest_timer_rect = pygame.Rect(0, 2 * config.BOARD_HEIGHT // 3, config.BOARD_WIDTH // 3, config.BOARD_HEIGHT)
-        self.rest_timer_font = utils.get_font_given_rect_and_text(self.run_timer_rect, self.get_elapsed_run_time())
 
         self.back_button = utils.get_back_button()
 
     def update(self, variables):
-        if self.running:
-            self.play("run")
+        if self.warmuping:
+            self.play("warmup", self.warmup)
+        elif self.running:
+            self.play("run", self.run_duration)
         elif self.resting:
-            self.play("rest")
-
-        if self.back_button.is_clicked(self.app.right_click):
+            self.play("rest", self.rest_duration)
+        if self.current_cycle > self.cycles:
+            self.resting = False
             self.running = False
+            self.play("cooldown", self.cooldown)
+
+        if self.back_button.is_clicked(self.app) or not self.cooldowning:
+            self.running = False
+            self.exit_state()
             self.exit_state()
 
     def render(self, surface):
         if self.running:
             surface.blit(self.run_image)
-            text_surface = self.run_timer_font.render(self.get_elapsed_run_time(), True, config.WHITE)
-            surface.blit(text_surface, self.run_timer_rect)
         elif self.resting:
             surface.blit(self.rest_image)
-            text_surface = self.rest_timer_font.render(self.get_elapsed_run_time(), True, config.WHITE)
-            surface.blit(text_surface, self.rest_timer_rect)
+        text_surface = self.run_timer_font.render(self.get_elapsed_run_time(), True, config.WHITE)
+        surface.blit(text_surface, self.run_timer_rect)
 
         self.back_button.draw(surface)
 
@@ -74,15 +82,14 @@ class RunMetronome(state.State):
             seconds = f"0{int(seconds)}"
         return f"{int(minutes)}:{seconds}"
 
-    def play(self, timer_type: str):
+    def play(self, timer_type: str, duration: int):
         now = time.time()
-        self.update_timer(timer_type, now)
+        self.update_timer(duration, now)
         self.advance_phase(timer_type, now)
-        self.play_tick(timer_type, now)
+        self.play_tick_non_blocking(now)
 
-    def update_timer(self, timer_type: str, now: float):
+    def update_timer(self, duration: int, now: float):
         elapsed = now - self.start_time
-        duration = self.run_duration if timer_type == "run" else self.rest_duration
         self.remaining = max(0, int(duration - elapsed))
 
     def advance_phase(self, timer_type: str, now: float):
@@ -92,22 +99,22 @@ class RunMetronome(state.State):
         self.start_time = now
         self.next_tick = now
 
-        if timer_type == "run":
+        if timer_type == "warmup":
+            self.running = True
+            self.warmuping = False
+        elif timer_type == "run":
             self.running = False
             self.resting = True
-        else:
+        elif timer_type == "rest":
             self.running = True
             self.resting = False
+            self.current_cycle += 1
+        else:
+            self.cooldowning = False
 
-    def play_tick(self, timer_type: str, now: float):
-        if now >= self.next_print:
-            self.next_print += 1
+    def play_tick_non_blocking(self, now):
+        if now >= self.next_tick:
+            if self.running:
+                self.sound.play()
 
-        if timer_type == "run":
-            self.sound.play()
-
-        self.next_tick += self.interval
-        sleep_time = self.next_tick - time.time()
-        if sleep_time > 0:
-            time.sleep(sleep_time)
-
+            self.next_tick += self.interval
