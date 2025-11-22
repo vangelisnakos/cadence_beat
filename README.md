@@ -41,3 +41,9 @@ This project is licensed under the MIT License – see the LICENSE file for deta
 ## Author
 
 Developed by Vangelis Nakos
+
+## TODO
+- add cycles num
+- add run/rest/cycles screen
+- add timer for each switch
+- add warm up - cooldown

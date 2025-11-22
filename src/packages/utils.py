@@ -22,12 +22,12 @@ def get_font_given_rect_and_text(rect: pygame.Rect, text: str) -> pygame.font.Fo
         font_size -= 1
     return font
 
-def blit_text(rect: pygame.Rect, text: str, surface: pygame.Surface):
+def get_blit_text(rect: pygame.Rect, text: str):
     """Draws text in the rect."""
     text_font = get_font_given_rect_and_text(rect, text)
     text_surf = text_font.render(text, True, config.WHITE)
     text_rect = text_surf.get_rect(center=rect.center)
-    surface.blit(text_surf, text_rect)
+    return text_surf, text_rect
 
 
 def cut_at_folder():

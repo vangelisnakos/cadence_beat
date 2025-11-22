@@ -1,6 +1,6 @@
 import pygame
 
-from states import state
+from states import state, review_metronome
 from packages import  slider_object, utils, number_stepper, config
 
 
@@ -20,18 +20,22 @@ class CreateMetronome(state.State):
         stepper_horizontal_space = (config.BOARD_WIDTH - 2 * self.stepper_width) // 3
         minutes_x = stepper_horizontal_space
         seconds_x = 2 * stepper_horizontal_space + self.stepper_width
+        self.font = utils.get_default_font()
 
         self.run_title_rect = pygame.Rect(minutes_x, 215, seconds_x + self.stepper_width - minutes_x, 50)
         run_minutes_stepper_rect = pygame.Rect(minutes_x, 300, self.stepper_width, self.stepper_height)
         self.run_minutes_stepper = number_stepper.NumberStepper(run_minutes_stepper_rect, 0, 20, name="minutes")
         run_seconds_stepper_rect = pygame.Rect(seconds_x, 300, self.stepper_width, self.stepper_height)
-        self.run_seconds_stepper = number_stepper.NumberStepper(run_seconds_stepper_rect, 0, 20, name="seconds")
+        self.run_seconds_stepper = number_stepper.NumberStepper(run_seconds_stepper_rect, 0, 60, name="seconds")
 
         self.rest_title_rect = pygame.Rect(minutes_x, 365, seconds_x + self.stepper_width - minutes_x, 50)
         rest_minutes_stepper_rect = pygame.Rect(minutes_x, 450, self.stepper_width, self.stepper_height)
         self.rest_minutes_stepper = number_stepper.NumberStepper(rest_minutes_stepper_rect, 0, 20, name="minutes")
         rest_seconds_stepper_rect = pygame.Rect(seconds_x, 450, self.stepper_width, self.stepper_height)
-        self.rest_seconds_stepper = number_stepper.NumberStepper(rest_seconds_stepper_rect, 0, 20, name="seconds")
+        self.rest_seconds_stepper = number_stepper.NumberStepper(rest_seconds_stepper_rect, 0, 60, name="seconds")
+
+        self.run_text_details = utils.get_blit_text(self.run_title_rect, "- Run Time -")
+        self.rest_text_details = utils.get_blit_text(self.rest_title_rect, "- Rest Time -")
 
         self.back_button = utils.get_back_button()
         self.continue_button = utils.get_continue_button()
@@ -45,20 +49,21 @@ class CreateMetronome(state.State):
         self.rest_seconds_stepper.update(self.app)
 
         if self.continue_button.is_clicked(self.app.right_click):
-            print(self.get_values())
+            new_state = review_metronome.ReviewMetronome(self.app, self.get_values())
+            new_state.enter_state()
         if self.back_button.is_clicked(self.app.right_click):
             self.exit_state()
 
     def render(self, surface):
         self.slider.draw(self.app.screen)
 
-        utils.blit_text(self.run_title_rect, "-Run Time-", surface)
-        self.run_minutes_stepper.draw(self.app.screen, utils.get_default_font())
-        self.run_seconds_stepper.draw(self.app.screen, utils.get_default_font())
+        surface.blit(*self.run_text_details)
+        self.run_minutes_stepper.draw(self.app.screen, self.font)
+        self.run_seconds_stepper.draw(self.app.screen, self.font)
 
-        utils.blit_text(self.rest_title_rect, "-Rest Time-", surface)
-        self.rest_minutes_stepper.draw(self.app.screen, utils.get_default_font())
-        self.rest_seconds_stepper.draw(self.app.screen, utils.get_default_font())
+        surface.blit(*self.rest_text_details)
+        self.rest_minutes_stepper.draw(self.app.screen, self.font)
+        self.rest_seconds_stepper.draw(self.app.screen, self.font)
 
         self.continue_button.draw(surface)
         self.back_button.draw(surface)
