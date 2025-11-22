@@ -10,14 +10,23 @@ class Slider:
         max_value: int,
         bar_color: tuple = config.BUTTON_COLOR_HOVER,
         handle_color: tuple = config.BUTTON_COLOR,
+        text_color: tuple = config.WHITE,
         border_radius: int = 8,
+        font: pygame.font.Font | None = None,
+        name: str = ""
     ):
         self.rect = rect
         self.min_value = min_value
         self.max_value = max_value
         self.value = min_value
+        self.font = font or utils.get_default_font()
+        self.name = name
+        self.name_font = utils.get_font_given_rect_and_text(self.rect, self.name)
+
         self.bar_color = bar_color
+        self.text_color = text_color
         self.handle_color = handle_color
+
         self.border_radius = border_radius
         self.ball_radius = self.rect.height // 8
         self.padding = self.ball_radius * 2
@@ -52,9 +61,14 @@ class Slider:
         pygame.draw.circle(surface, self.handle_color, (hx, hy), self.ball_radius)
 
     def draw_value(self, surface):
-        font = utils.get_default_font()
-        value_surf = font.render(str(self.value), True, self.handle_color)
-        surface.blit(value_surf, (self.rect.right * 1.01, self.rect.y + self.rect.height // 2 - font.get_height() // 2))
+        value_surf = self.font.render(str(self.value), True, self.text_color)
+        surface.blit(value_surf, (self.rect.right * 1.01, self.rect.y + self.rect.height // 2 - self.font.get_height() // 2))
+
+    def draw_name(self, surface):
+        text_surf = self.name_font.render(self.name, True, self.text_color)
+        text_rect = text_surf.get_rect(center=self.rect.center)
+        text_rect.y -= self.rect.height
+        surface.blit(text_surf, text_rect)
 
     def draw(self, surface):
         pygame.draw.rect(surface, self.bar_color, self.rect, border_radius=self.border_radius)
@@ -66,6 +80,7 @@ class Slider:
         self.draw_line(surface)
         self.draw_ball(surface)
         self.draw_value(surface)
+        self.draw_name(surface)
 
     def update(self, is_right_click: bool):
         mouse_x, mouse_y = pygame.mouse.get_pos()

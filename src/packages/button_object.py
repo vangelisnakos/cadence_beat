@@ -26,15 +26,7 @@ class Button:
     def get_font(self) -> pygame.font.Font:
         from packages import utils
 
-        font_size = 200
-        font = None
-        while font_size > 1:
-            font = utils.get_default_font(size=font_size)
-            text_width, text_height = font.size(self.text)
-            if text_width + 5 <= self.rect.width and text_height + 5 <= self.rect.height:
-                return font
-            font_size -= 1
-        return font
+        return utils.get_font_given_rect_and_text(self.rect, self.text)
 
     def draw_shadow(self, surface):
         shadow_offset = 4
