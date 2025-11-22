@@ -32,3 +32,12 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Other typical Python exclusions
+*.egg-info/
+dist/
+.eggs/

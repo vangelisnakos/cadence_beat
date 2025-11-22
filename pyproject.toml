@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cadence_beat"
+version = "0.1.0"
+description = "Metronome app for cadence training."
+authors = [{name = "Vangelis Nakos", email = "vaggelis.nak1@email.com"}]
+license = {text = "MIT"}
+dependencies = [
+  "pygame~=2.5.2"
+]
