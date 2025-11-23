@@ -11,8 +11,6 @@ class RunMetronome(state.State):
     def __init__(self, app, metronome_values: dict[str, int]):
         state.State.__init__(self, app)
         self.metronome_values = metronome_values
-
-        self.values = metronome_values
         self.interval = 60.0 / metronome_values["bpm"]
 
         self.images = {
@@ -35,10 +33,23 @@ class RunMetronome(state.State):
         self.pause_start = None
         self.accumulated_pause = 0
 
-        self.font = utils.get_default_font()
+        self.font = utils.get_default_font(size=35)
         self.run_timer_rect = pygame.Rect(
-            config.BOARD_WIDTH // 4, config.BOARD_HEIGHT // 2,
-            config.BOARD_WIDTH // 2, config.BOARD_HEIGHT
+            config.BOARD_WIDTH // 8, config.BOARD_HEIGHT // 10,
+            3 * config.BOARD_WIDTH // 4, config.BOARD_HEIGHT // 3
+        )
+        self.time_font = utils.get_font_given_rect_and_text(self.run_timer_rect, "0:00")
+        self.current_phase_rect = pygame.Rect(
+            config.BOARD_WIDTH // 8, config.BOARD_HEIGHT // 2,
+            3 * config.BOARD_WIDTH // 4, config.BOARD_HEIGHT // 5
+        )
+        self.next_phase_rect = pygame.Rect(
+            config.BOARD_WIDTH // 8, 3 * config.BOARD_HEIGHT // 5,
+            3 * config.BOARD_WIDTH // 4, config.BOARD_HEIGHT // 5
+        )
+        self.cycles_rect = pygame.Rect(
+            config.BOARD_WIDTH // 8, 7 * config.BOARD_HEIGHT // 10,
+            3 * config.BOARD_WIDTH // 4, config.BOARD_HEIGHT // 5
         )
 
     @staticmethod
@@ -46,16 +57,16 @@ class RunMetronome(state.State):
         phases = []
 
         if metronome_values["warm-up"] > 0:
-            phases.append(("warmup", metronome_values["warm-up"] * 60, False))
+            phases.append(("Warm-up", metronome_values["warm-up"] * 60, False))
 
         run_dur = metronome_values["run_min"] * 60 + metronome_values["run_sec"]
         rest_dur = metronome_values["rest_min"] * 60 + metronome_values["rest_sec"]
         for _ in range(metronome_values["cycles"]):
-            phases.append(("run", run_dur, True))
-            phases.append(("rest", rest_dur, False))
+            phases.append(("Run", run_dur, True))
+            phases.append(("Rest", rest_dur, False))
 
         if metronome_values["cooldown"] > 0:
-            phases.append(("cooldown", metronome_values["cooldown"] * 60, False))
+            phases.append(("Cooldown", metronome_values["cooldown"] * 60, False))
 
         return phases
 
@@ -98,14 +109,31 @@ class RunMetronome(state.State):
         name, duration, _ = self.phases[self.current_phase_index]
         remaining = self.get_remaining_time()
 
-        if name in self.images:
-            surface.blit(self.images[name])
+        if name.lower() in self.images:
+            surface.blit(self.images[name.lower()])
 
         minutes = remaining // 60
         seconds = remaining % 60
         time_str = f"{minutes}:{seconds:02d}"
-        text_surface = self.font.render(time_str, True, config.WHITE)
+        text_surface = self.time_font.render(time_str, True, config.WHITE)
         surface.blit(text_surface, self.run_timer_rect)
+
+        phase_str = f"{name}: {duration//60}:{duration%60:02d}"
+        text_surface = self.font.render(phase_str, True, config.WHITE)
+        surface.blit(text_surface, self.current_phase_rect)
+
+        if self.current_phase_index + 1 < len(self.phases):
+            next_name, duration, _ = self.phases[self.current_phase_index + 1]
+            next_phase_str = f"{next_name}: {duration//60}:{duration%60:02d}"
+            text_surface = self.font.render(next_phase_str, True, config.WHITE)
+            surface.blit(text_surface, self.next_phase_rect)
+
+        if name in ["Run", "Rest"]:
+            current_cycle = self.get_current_cycle()
+            total_cycles = self.metronome_values["cycles"]
+            cycle_str = f"Cycle: {current_cycle}/{total_cycles}"
+            text_surface = self.font.render(cycle_str, True, config.WHITE)
+            surface.blit(text_surface, self.cycles_rect)
 
         self.back_button.draw(surface)
         self.continue_button.draw(surface)
@@ -131,6 +159,13 @@ class RunMetronome(state.State):
         sounds_directory = os.path.join(base_directory, "data\sounds")
         sound = pygame.mixer.Sound(os.path.join(sounds_directory, sound_name + ".mp3"))
         return sound
+
+    def get_current_cycle(self):
+        count = 0
+        for i, (name, _, _) in enumerate(self.phases):
+            if name == "Run" and i <= self.current_phase_index:
+                count += 1
+        return max(1, min(count, self.metronome_values["cycles"]))
 
     def advance_phase(self, now):
         self.start_time = now

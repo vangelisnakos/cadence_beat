@@ -43,7 +43,6 @@ This project is licensed under the MIT License – see the LICENSE file for deta
 Developed by Vangelis Nakos
 
 ## TODO
-- add run/rest/cycles screen
 - add countdown
 - make it a phone app
 - add music

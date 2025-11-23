@@ -7,7 +7,8 @@ class StartMenu(state.State):
     def __init__(self, app):
         state.State.__init__(self, app)
         self.buttons = utils.assign_buttons_to_space(self.app.screen.get_rect(),
-                                                     ["Create Metronome", "Settings", "Quit"])
+                                                     ["Create Metronome", "Settings", "Quit"],
+                                                     x_division=2)
 
     def update(self, variables):
         for button in self.buttons:
