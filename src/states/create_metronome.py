@@ -32,14 +32,14 @@ class CreateMetronome(state.State):
         run_minutes_stepper_rect = pygame.Rect(minutes_x, 300, self.stepper_width, self.stepper_height)
         self.run_minutes_stepper = number_stepper.NumberStepper(run_minutes_stepper_rect, 0, 20, name="minutes")
         run_seconds_stepper_rect = pygame.Rect(seconds_x, 300, self.stepper_width, self.stepper_height)
-        self.run_seconds_stepper = number_stepper.NumberStepper(run_seconds_stepper_rect, 0, 60, name="seconds")
+        self.run_seconds_stepper = number_stepper.NumberStepper(run_seconds_stepper_rect, 0, 60, name="seconds", step=10)
 
         self.rest_title_rect = pygame.Rect(minutes_x, 365, seconds_x + self.stepper_width - minutes_x, 50)
         self.rest_text_details = utils.get_blit_text(self.rest_title_rect, "- Rest Time -")
         rest_minutes_stepper_rect = pygame.Rect(minutes_x, 450, self.stepper_width, self.stepper_height)
         self.rest_minutes_stepper = number_stepper.NumberStepper(rest_minutes_stepper_rect, 0, 20, name="minutes")
         rest_seconds_stepper_rect = pygame.Rect(seconds_x, 450, self.stepper_width, self.stepper_height)
-        self.rest_seconds_stepper = number_stepper.NumberStepper(rest_seconds_stepper_rect, 0, 60, name="seconds")
+        self.rest_seconds_stepper = number_stepper.NumberStepper(rest_seconds_stepper_rect, 0, 60, name="seconds", step=10)
 
         self.prepare_title_rect = pygame.Rect(minutes_x, 515, seconds_x + self.stepper_width - minutes_x, 50)
         self.prepare_text_details = utils.get_blit_text(self.prepare_title_rect, "- Prepare -")

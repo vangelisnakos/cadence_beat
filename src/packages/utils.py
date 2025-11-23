@@ -91,3 +91,14 @@ def get_continue_button() -> button_object.Button:
     y = config.BOARD_HEIGHT - free_corner_space - height
     button_rect = pygame.Rect(x, y, width, height)
     return button_object.Button(button_rect, "Continue")
+
+
+def get_pause_button() -> button_object.Button:
+    """Returns the pause button in the right-top corner."""
+    width = config.BOARD_WIDTH // 5 + 10
+    height = 50
+    free_corner_space = 0.05 * config.BOARD_WIDTH
+    x = config.BOARD_WIDTH - free_corner_space - width
+    y = free_corner_space
+    button_rect = pygame.Rect(x, y, width, height)
+    return button_object.Button(button_rect, "Pause")
