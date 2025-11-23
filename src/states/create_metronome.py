@@ -15,7 +15,7 @@ class CreateMetronome(state.State):
         state.State.__init__(self, app)
         slider_x = (config.BOARD_WIDTH - self.slider_width) // 2
         slider_rect = pygame.Rect(slider_x, 75, self.slider_width, self.slider_height)
-        self.slider = slider_object.Slider(slider_rect, 150, 250, name="BPM")
+        self.slider = slider_object.Slider(slider_rect, 150, 220, name="BPM")
 
         stepper_horizontal_space = (config.BOARD_WIDTH - 2 * self.stepper_width) // 3
         minutes_x = 0.8 * stepper_horizontal_space

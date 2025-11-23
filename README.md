@@ -43,6 +43,5 @@ This project is licensed under the MIT License – see the LICENSE file for deta
 Developed by Vangelis Nakos
 
 ## TODO
-- add countdown
 - make it a phone app
 - add music

@@ -19,6 +19,8 @@ class RunMetronome(state.State):
         }
         pygame.mixer.init()
         self.sound = self.load_sound()
+        self.countdown_sound = self.load_sound(sound_name="countdown")
+        self.countdown_started  = False
 
         self.phases = self.build_phases(metronome_values)
         self.current_phase_index = 0
@@ -82,6 +84,10 @@ class RunMetronome(state.State):
         phase_name, duration, ticking = self.phases[self.current_phase_index]
 
         remaining = self.get_remaining_time(now)
+
+        if remaining == 5 and not self.countdown_started:
+            self.countdown_sound.play()
+            self.countdown_started = True
 
         if remaining == 0:
             self.advance_phase(now)
@@ -167,11 +173,16 @@ class RunMetronome(state.State):
                 count += 1
         return max(1, min(count, self.metronome_values["cycles"]))
 
-    def advance_phase(self, now):
+    def reset_phase(self, now):
         self.start_time = now
         self.next_tick = now
-        self.current_phase_index += 1
         self.accumulated_pause = 0
+        self.countdown_started = False
+        self.countdown_sound.stop()
+
+    def advance_phase(self, now):
+        self.reset_phase(now)
+        self.current_phase_index += 1
 
         if self.current_phase_index >= len(self.phases):
             self.exit_state()
@@ -189,10 +200,8 @@ class RunMetronome(state.State):
 
     def go_back_phase(self, now):
         if self.current_phase_index > 0:
+            self.reset_phase(now)
             self.current_phase_index -= 1
-            self.start_time = now
-            self.next_tick = now
-            self.accumulated_pause = 0
         else:
             self.exit_state()
             self.exit_state()
