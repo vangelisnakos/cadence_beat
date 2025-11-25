@@ -1,62 +1,82 @@
-import pygame
-
+from kivy.uix.widget import Widget
+from kivy.graphics import Color, RoundedRectangle
+from kivy.uix.label import Label
+from kivy.core.text import Label as CoreLabel
+from kivy.properties import BooleanProperty
 from packages import config
 
-class Button:
+
+class Button(Widget):
+    clicked = BooleanProperty(False)
+
     def __init__(
         self,
-        rect: pygame.Rect,
+        pos,
+        size,
         text: str,
         color: tuple = config.BUTTON_COLOR,
         hover_color: tuple = config.BUTTON_COLOR_HOVER,
         text_color: tuple = config.WHITE,
         border_radius: int = 12,
-        font: pygame.font.Font | None = None
+        **kwargs
     ):
-        self.rect = rect
+        super().__init__(**kwargs)
+        self.pos = pos
+        self.size = size
         self.text = text
         self.color = color
         self.hover_color = hover_color
         self.text_color = text_color
-        self.font = font or self.get_font()
         self.border_radius = border_radius
 
-        self.clicked = False
+        self._touch_down = False
 
-    def get_font(self) -> pygame.font.Font:
-        from packages import utils
+        # Draw the button
+        with self.canvas:
+            self.bg_color = Color(*self.color)
+            self.bg_rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[self.border_radius])
+            self.label_color = Color(*self.text_color)
+            self.label = CoreLabel(text=self.text, font_size=20)
+            self.label.refresh()
+            texture = self.label.texture
+            self.label_rect = RoundedRectangle(
+                texture=texture,
+                pos=(self.pos[0] + (self.size[0] - texture.size[0]) / 2,
+                     self.pos[1] + (self.size[1] - texture.size[1]) / 2),
+                size=texture.size
+            )
 
-        return utils.get_font_given_rect_and_text(self.rect, self.text)
+        # Bind pos/size changes to update graphics
+        self.bind(pos=self._update_graphics, size=self._update_graphics)
 
-    def draw_shadow(self, surface):
-        shadow_offset = 4
-        shadow_rect = self.rect.move(shadow_offset, shadow_offset)
-        pygame.draw.rect(surface, config.BLACK, shadow_rect, border_radius=self.border_radius)
+    def _update_graphics(self, *args):
+        self.bg_rect.pos = self.pos
+        self.bg_rect.size = self.size
+        self.label.refresh()
+        texture = self.label.texture
+        self.label_rect.texture = texture
+        self.label_rect.pos = (
+            self.pos[0] + (self.size[0] - texture.size[0]) / 2,
+            self.pos[1] + (self.size[1] - texture.size[1]) / 2
+        )
+        self.label_rect.size = texture.size
 
-    def draw_background(self, surface):
-        mouse_pos = pygame.mouse.get_pos()
-        current_color = self.hover_color if self.rect.collidepoint(mouse_pos) else self.color
-        pygame.draw.rect(surface, current_color, self.rect, border_radius=self.border_radius)
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            self._touch_down = True
+            self.bg_color.rgb = self.hover_color[:3]
+            return True
+        return super().on_touch_down(touch)
 
-    def draw_edge(self, surface):
-        pygame.draw.rect(surface,  config.WHITE, self.rect, width=2, border_radius=self.border_radius)
+    def on_touch_up(self, touch):
+        if self._touch_down and self.collide_point(*touch.pos):
+            self.clicked = True
+        self._touch_down = False
+        self.bg_color.rgb = self.color[:3]
+        return super().on_touch_up(touch)
 
-    def draw_text(self, surface):
-        text_surf = self.font.render(self.text, True, self.text_color)
-        text_rect = text_surf.get_rect(center=self.rect.center)
-        surface.blit(text_surf, text_rect)
-
-    def draw(self, surface):
-        self.draw_shadow(surface)
-        self.draw_background(surface)
-        self.draw_edge(surface)
-        self.draw_text(surface)
-
-    def is_clicked(self, app):
-        self.clicked = False
-        if app.right_click:
-            mouse_pos = pygame.mouse.get_pos()
-            if self.rect.collidepoint(mouse_pos):
-                app.right_click = False
-                self.clicked = True
-        return self.clicked
+    def is_clicked(self):
+        if self.clicked:
+            self.clicked = False
+            return True
+        return False
