@@ -17,21 +17,18 @@ class RunMetronome(state.State):
         self.metronome_values = metronome_values
         self.interval = 60.0 / metronome_values["bpm"]
 
-        # Load sounds via Kivy SoundLoader
         self.sound = self.load_sound("basic")
         self.countdown_sound = self.load_sound("countdown")
         self.countdown_started = False
 
         self.phases = self.build_phases(metronome_values)
         self.current_phase_index = 0
-        self.start_time = 0  # We'll track time with Clock
+        self.start_time = 0
         self.elapsed_time = 0
         self.paused = False
 
-        # Layout
         self.main_layout = BoxLayout(orientation="vertical", spacing=dp(10), padding=dp(20))
 
-        # Labels
         self.phase_label = Label(text="", font_size=dp(35), size_hint=(1, None), height=dp(50))
         self.timer_label = Label(text="0:00", font_size=dp(50), size_hint=(1, None), height=dp(60))
         self.cycle_label = Label(text="", font_size=dp(35), size_hint=(1, None), height=dp(50))
@@ -40,7 +37,6 @@ class RunMetronome(state.State):
         self.main_layout.add_widget(self.timer_label)
         self.main_layout.add_widget(self.cycle_label)
 
-        # Buttons
         self.back_button = utils.get_back_button()
         self.continue_button = utils.get_continue_button()
         self.pause_button = utils.get_pause_button()
@@ -49,10 +45,8 @@ class RunMetronome(state.State):
             self.main_layout.add_widget(btn)
             btn.bind(on_press=self.on_button_press)
 
-        # Add layout to app root
-        app.root.add_widget(self.main_layout)
+        app.add_widget(self.main_layout)
 
-        # Schedule clock updates
         Clock.schedule_interval(self.update, 0.1)
 
     @staticmethod
@@ -94,19 +88,16 @@ class RunMetronome(state.State):
         self.elapsed_time += dt
         remaining = max(0, int(duration - self.elapsed_time))
 
-        # Countdown sound
         if remaining == 5 and not self.countdown_started:
             if self.countdown_sound:
                 self.countdown_sound.play()
             self.countdown_started = True
 
-        # Tick sound
         if ticking and self.elapsed_time >= self.interval:
             if self.sound:
                 self.sound.play()
             self.elapsed_time = 0
 
-        # Update labels
         self.phase_label.text = f"{name}: {duration//60}:{duration%60:02d}"
         minutes = remaining // 60
         seconds = remaining % 60
@@ -117,7 +108,6 @@ class RunMetronome(state.State):
             total_cycles = self.metronome_values["cycles"]
             self.cycle_label.text = f"Cycle: {current_cycle}/{total_cycles}"
 
-        # Advance phase automatically
         if remaining <= 0:
             self.advance_phase()
 

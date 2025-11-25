@@ -14,40 +14,23 @@ from packages import config, utils
 class MainWidget(FloatLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        Window.size = (config.BOARD_WIDTH, config.BOARD_HEIGHT)
-        Window.title = "CadenceBeat"
-
-        self.state_stack = []
-        self.start_screen = None
         self.tap_detected = False
         self.back_pressed = False
+        self.bg_image = None
+        self.current_state = None
 
-        self.load_states()
+        self.create_window()
+        self.create_main_background()
 
-        # Load background image
-        image_directory = os.path.join(utils.get_directory("images"), "menu_background.png")
-        self.bg_image = Image(source=image_directory, allow_stretch=True, keep_ratio=False)
-        self.add_widget(self.bg_image)
+        self.start_menu = start_menu.StartMenu(self)
+        self.start_menu.enter_state()
 
-        # Schedule update loop
-        Clock.schedule_interval(self.update, 1.0 / config.FPS)
-
-        # Keyboard/back button events
-        Window.bind(on_key_down=self.on_key_down)
-
-    def load_states(self):
-        self.start_screen = start_menu.StartMenu(self)
-        self.state_stack.append(self.start_screen)
-
-    # Back button handler
     def on_key_down(self, window, key, scancode, codepoint, modifiers):
-        if key == 27:  # Android back button
+        if key == 27:
             self.back_pressed = True
-            # Optional: override default behavior
             return True
         return False
 
-    # Touch events (tap detection)
     def on_touch_down(self, touch):
         self.tap_detected = True
         return super().on_touch_down(touch)
@@ -56,15 +39,15 @@ class MainWidget(FloatLayout):
         self.tap_detected = False
         return super().on_touch_up(touch)
 
-    def update(self, dt):
-        # Call the current state's update
-        if self.state_stack:
-            self.state_stack[-1].update(dt)
+    def create_window(self):
+        Window.size = (config.BOARD_WIDTH, config.BOARD_HEIGHT)
+        Window.title = "CadenceBeat"
+        Window.bind(on_key_down=self.on_key_down)
 
-    def render(self):
-        # Kivy auto-updates UI, just call state's render if needed
-        if self.state_stack:
-            self.state_stack[-1].render(self)
+    def create_main_background(self):
+        image_directory = os.path.join(utils.get_directory("images"), "menu_background.png")
+        self.bg_image = Image(source=image_directory, allow_stretch=True, keep_ratio=False)
+        self.add_widget(self.bg_image)
 
 
 class CadenceApp(App):

@@ -35,7 +35,7 @@ class ReviewMetronome(state.State):
         self.main_layout.add_widget(self.back_button)
 
         # Add to app's root
-        app.root.add_widget(self.main_layout)
+        app.add_widget(self.main_layout)
 
         # Bind buttons
         self.back_button.bind(on_press=lambda *_: self.exit_state())
