@@ -17,13 +17,13 @@ class MainWidget(FloatLayout):
         self.tap_detected = False
         self.back_pressed = False
         self.bg_image = None
-        self.current_state = None
+        self.states_stack = []
 
         self.create_window()
         self.create_main_background()
 
-        self.start_menu = start_menu.StartMenu(self)
-        self.start_menu.enter_state()
+        start_menu_state = start_menu.StartMenu(self)
+        self.enter_state(start_menu_state)
 
     def on_key_down(self, window, key, scancode, codepoint, modifiers):
         if key == 27:
@@ -47,8 +47,23 @@ class MainWidget(FloatLayout):
     def create_main_background(self):
         image_directory = os.path.join(utils.get_directory("images"), "menu_background.png")
         self.bg_image = Image(source=image_directory, allow_stretch=True, keep_ratio=False)
-        self.add_widget(self.bg_image)
+        self.add_widget(self.bg_image, index=0)
 
+    def enter_state(self, new_state):
+        for state in self.states_stack:
+            if state in self.children:
+                self.remove_widget(state)
+        self.add_widget(new_state)
+        self.states_stack.append(new_state)
+
+    def exit_state(self):
+        for state in self.states_stack:
+            if state in self.children:
+                self.remove_widget(state)
+        self.states_stack.pop()
+        new_state = self.add_widget(self.states_stack[-1])
+        if new_state is not None:
+            self.add_widget(new_state)
 
 class CadenceApp(App):
     def build(self):

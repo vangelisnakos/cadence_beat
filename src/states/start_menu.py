@@ -3,12 +3,12 @@ from kivy.uix.button import Button
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 
-from states import state, create_metronome
+from states import create_metronome
 
-class StartMenu(state.State, FloatLayout):
+class StartMenu(FloatLayout):
     def __init__(self, app):
-        state.State.__init__(self, app)
         FloatLayout.__init__(self, size_hint=(1,1))
+        self.app = app
 
         self.layout = BoxLayout(
             orientation="vertical",
@@ -35,7 +35,7 @@ class StartMenu(state.State, FloatLayout):
     def on_button_press(self, instance):
         if instance.text == "Create Metronome":
             new_state = create_metronome.CreateMetronome(self.app)
-            new_state.enter_state()
+            self.app.enter_state(new_state)
         elif instance.text == "Settings":
             print("Settings")
         elif instance.text == "Quit":

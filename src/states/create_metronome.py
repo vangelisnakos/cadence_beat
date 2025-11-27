@@ -1,15 +1,16 @@
 from kivy.metrics import dp
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.button import Button
 
 from packages import config, number_stepper, slider_object, utils
-from states import review_metronome, state
+from states import review_metronome
 
 
-class CreateMetronome(state.State, FloatLayout):
+class CreateMetronome(FloatLayout):
     def __init__(self, app):
-        state.State.__init__(self, app)
         FloatLayout.__init__(self)
+        self.app = app
 
         parent_width = config.BOARD_WIDTH
         parent_height = config.BOARD_HEIGHT
@@ -110,13 +111,28 @@ class CreateMetronome(state.State, FloatLayout):
         )
         self.add_widget(self.cycles_stepper)
 
-        # --- Buttons (optional) ---
-        # self.back_button = utils.get_back_button()
-        # self.continue_button = utils.get_continue_button()
-        # self.back_button.pos = (dp(20), dp(20))
-        # self.continue_button.pos = (parent_width - dp(120), dp(20))
-        # self.add_widget(self.back_button)
-        # self.add_widget(self.continue_button)
+        # --- Buttons ---
+        button_width = dp(120)
+        button_height = dp(50)
+
+        self.back_button = Button(
+            text="Back",
+            size_hint=(None, None),
+            size=(button_width, button_height),
+            pos=(dp(20), dp(20)),
+        )
+        self.back_button.bind(on_press=self.on_button_press)
+
+        self.continue_button = Button(
+            text="Continue",
+            size_hint=(None, None),
+            size=(button_width, button_height),
+            pos=(parent_width - button_width - dp(20), dp(20)),
+        )
+        self.continue_button.bind(on_press=self.on_button_press)
+
+        self.add_widget(self.back_button)
+        self.add_widget(self.continue_button)
 
     def get_values(self):
         return {
@@ -133,4 +149,10 @@ class CreateMetronome(state.State, FloatLayout):
     def go_to_review(self):
         values = self.get_values()
         new_state = review_metronome.ReviewMetronome(self.app, values)
-        new_state.enter_state()
+        self.app.enter_state(new_state)
+
+    def on_button_press(self, instance):
+        if instance.text == "Continue":
+            self.go_to_review()
+        elif instance.text == "Back":
+            self.app.exit_state()
