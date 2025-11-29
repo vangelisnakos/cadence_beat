@@ -7,9 +7,8 @@ from kivy.core.audio import SoundLoader
 from kivy.base import EventLoop
 EventLoop.idle()
 
-from packages import utils, config
+from packages import utils, config, metronome_generator
 
-SEC_IN_MIN = 60
 
 class RunMetronome(BoxLayout):
     def __init__(self, app, metronome_values: dict[str, int], **kwargs):
@@ -17,7 +16,7 @@ class RunMetronome(BoxLayout):
         self.app = app
 
         self.metronome_values = metronome_values
-        self.interval = SEC_IN_MIN / metronome_values["bpm"]
+        self.interval = config.SEC_IN_MIN / metronome_values["bpm"]
 
         self.sound = self.load_sound("basic")
         self.countdown_sound = self.load_sound("countdown")
@@ -54,8 +53,8 @@ class RunMetronome(BoxLayout):
         bottom_row.add_widget(self.continue_button)
         self.add_widget(bottom_row)
 
+        self.start_phase_audio()
         Clock.schedule_interval(self.update_ui, 1 / config.FPS)
-        Clock.schedule_interval(self.play_tick, self.interval)
 
     def on_pause(self, instance):
         self.paused = not self.paused
@@ -66,13 +65,6 @@ class RunMetronome(BoxLayout):
 
     def on_continue(self, instance):
         self.advance_phase()
-
-    def play_tick(self, dt):
-        if self.paused or self.current_phase_index >= len(self.phases):
-            return
-        name, duration, ticking = self.phases[self.current_phase_index]
-        if ticking:
-            self.sound.play()
 
     def update_ui(self, dt):
         if self.paused or self.current_phase_index >= len(self.phases):
@@ -87,9 +79,9 @@ class RunMetronome(BoxLayout):
                 self.countdown_sound.play()
             self.countdown_started = True
 
-        self.phase_label.text = f"{name}: {duration//SEC_IN_MIN}:{duration%SEC_IN_MIN:02d}"
-        minutes = remaining // SEC_IN_MIN
-        seconds = remaining % SEC_IN_MIN
+        self.phase_label.text = f"{name}: {duration//config.SEC_IN_MIN}:{duration%config.SEC_IN_MIN:02d}"
+        minutes = remaining // config.SEC_IN_MIN
+        seconds = remaining % config.SEC_IN_MIN
         self.timer_label.text = f"{minutes}:{seconds:02d}"
 
         if name in ["Run", "Rest"]:
@@ -106,14 +98,14 @@ class RunMetronome(BoxLayout):
     def build_phases(metronome_values):
         phases = []
         if metronome_values.get("warm-up", 0) > 0:
-            phases.append(("Warm-up", metronome_values["warm-up"] * SEC_IN_MIN, False))
-        run_dur = metronome_values.get("run_min", 0) * SEC_IN_MIN + metronome_values.get("run_sec", 0)
-        rest_dur = metronome_values.get("rest_min", 0) * SEC_IN_MIN + metronome_values.get("rest_sec", 0)
+            phases.append(("Warm-up", metronome_values["warm-up"] * config.SEC_IN_MIN, False))
+        run_dur = metronome_values.get("run_min", 0) * config.SEC_IN_MIN + metronome_values.get("run_sec", 0)
+        rest_dur = metronome_values.get("rest_min", 0) * config.SEC_IN_MIN + metronome_values.get("rest_sec", 0)
         for _ in range(metronome_values.get("cycles", 1)):
             phases.append(("Run", run_dur, True))
             phases.append(("Rest", rest_dur, False))
         if metronome_values.get("cooldown", 0) > 0:
-            phases.append(("Cooldown", metronome_values["cooldown"] * SEC_IN_MIN, False))
+            phases.append(("Cooldown", metronome_values["cooldown"] * config.SEC_IN_MIN, False))
         return phases
 
     def get_current_cycle(self):
@@ -130,16 +122,34 @@ class RunMetronome(BoxLayout):
         s = SoundLoader.load(f"{sounds_dir}/{name}.wav")
         return s
 
+    def start_phase_audio(self):
+        name, duration, ticking = self.phases[self.current_phase_index]
+
+        if self.sound:
+            self.sound.stop()
+
+        if ticking:
+            audio = metronome_generator.generate_metronome_audio(self.metronome_values["bpm"], duration)
+
+            if audio:
+                self.sound = audio
+                self.sound.play()
+        else:
+            if self.sound:
+                self.sound.stop()
+
     def advance_phase(self):
         self.reset_phase()
         self.current_phase_index += 1
         if self.current_phase_index >= len(self.phases):
             self.exit_state()
+        self.start_phase_audio()
 
     def go_back_phase(self):
         self.reset_phase()
         if self.current_phase_index > 0:
             self.current_phase_index -= 1
+            self.start_phase_audio()
         else:
             self.exit_state()
 
@@ -150,7 +160,6 @@ class RunMetronome(BoxLayout):
             self.countdown_sound.stop()
 
     def stop(self):
-        Clock.unschedule(self.play_tick)
         if self.sound:
             self.sound.stop()
         if self.countdown_sound:

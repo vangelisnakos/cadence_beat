@@ -4,6 +4,7 @@ BOARD_HEIGHT = 750
 FPS = 60
 DEFAULT_FONT_SIZE = 40
 DEFAULT_FONT_TYPE = "arialblack"
+SEC_IN_MIN = 60
 
 def rgb(c):
     return tuple(v / 255 for v in c)
