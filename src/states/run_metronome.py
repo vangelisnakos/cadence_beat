@@ -1,11 +1,11 @@
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
+from kivy.uix.image import Image
 from kivy.metrics import dp
 from kivy.clock import Clock
-from kivy.core.audio import SoundLoader
 from kivy.base import EventLoop
-from kivy.uix.image import Image
+from kivy.core.audio import SoundLoader
 EventLoop.idle()
 
 from packages import utils, config, metronome_generator
@@ -13,14 +13,17 @@ from packages import utils, config, metronome_generator
 
 class RunMetronome(FloatLayout):
     def __init__(self, app, metronome_values: dict[str, int], **kwargs):
-        FloatLayout.__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self.app = app
         self.metronome_values = metronome_values
         self.interval = config.SEC_IN_MIN / metronome_values["bpm"]
 
+        # --- Cached image directory ---
+        self.images_dir = utils.get_directory("images")
+
         # --- Background ---
         self.bg_image = Image(
-            source=utils.get_directory("images") + "/menu_background.png",
+            source=f"{self.images_dir}/menu_background.png",
             allow_stretch=True,
             keep_ratio=False,
             size_hint=(1, 1),
@@ -30,33 +33,28 @@ class RunMetronome(FloatLayout):
 
         # --- Labels ---
         self.phase_label = Label(
-            text="",
             font_size=dp(28),
             size_hint=(1, None),
             height=dp(50),
             pos_hint={"top": 0.95}
         )
-        self.add_widget(self.phase_label)
-
         self.timer_label = Label(
-            text="0:00",
             font_size=dp(44),
             size_hint=(1, None),
             height=dp(80),
             pos_hint={"center_x": 0.5, "center_y": 0.6}
         )
-        self.add_widget(self.timer_label)
-
         self.cycle_label = Label(
-            text="",
             font_size=dp(24),
             size_hint=(1, None),
             height=dp(40),
             pos_hint={"center_x": 0.5, "center_y": 0.5}
         )
+        self.add_widget(self.phase_label)
+        self.add_widget(self.timer_label)
         self.add_widget(self.cycle_label)
 
-        # --- Top Row: Pause button ---
+        # --- Top Row: Pause Button ---
         self.pause_button = Button(
             text="Pause",
             size_hint=(None, None),
@@ -84,7 +82,7 @@ class RunMetronome(FloatLayout):
         self.add_widget(self.back_button)
         self.add_widget(self.continue_button)
 
-        # --- Audio ---
+        # --- Audio & Phase State ---
         self.sound = None
         self.countdown_sound = None
         self.countdown_started = False
@@ -93,12 +91,11 @@ class RunMetronome(FloatLayout):
         self.elapsed_time = 0.0
         self.paused = False
 
-        # Start the first phase's audio
+        # --- Start first phase audio & schedule UI updates ---
         self.start_phase_audio()
-
-        # Schedule UI updates
         Clock.schedule_interval(self.update_ui, 1 / config.FPS)
 
+    # ----------------- UI Callbacks -----------------
     def on_pause(self, instance):
         self.paused = not self.paused
         self.pause_button.text = "Resume" if self.paused else "Pause"
@@ -109,6 +106,7 @@ class RunMetronome(FloatLayout):
     def on_continue(self, instance):
         self.advance_phase()
 
+    # ----------------- UI / Timer -----------------
     def update_ui(self, dt):
         if self.paused or self.current_phase_index >= len(self.phases):
             return
@@ -117,17 +115,17 @@ class RunMetronome(FloatLayout):
         self.elapsed_time += dt
         remaining = max(0, int(duration - self.elapsed_time))
 
-        # update background
+        # Background update
         self.update_background(name)
 
-        if remaining == 5 and not self.countdown_started:
-            if self.countdown_sound:
-                self.countdown_sound.play()
+        # Countdown audio
+        if remaining == 5 and not self.countdown_started and self.countdown_sound:
+            self.countdown_sound.play()
             self.countdown_started = True
 
+        # Update labels
         self.phase_label.text = f"{name}: {duration // config.SEC_IN_MIN}:{duration % config.SEC_IN_MIN:02d}"
-        minutes = remaining // config.SEC_IN_MIN
-        seconds = remaining % config.SEC_IN_MIN
+        minutes, seconds = divmod(remaining, config.SEC_IN_MIN)
         self.timer_label.text = f"{minutes}:{seconds:02d}"
 
         if name in ["Run", "Rest"]:
@@ -142,42 +140,14 @@ class RunMetronome(FloatLayout):
 
     def update_background(self, phase_name):
         if phase_name == "Run":
-            self.bg_image.source = utils.get_directory("images") + "/run_background.png"
+            self.bg_image.source = f"{self.images_dir}/run_background.png"
         elif phase_name == "Rest":
-            self.bg_image.source = utils.get_directory("images") + "/rest_background.png"
+            self.bg_image.source = f"{self.images_dir}/rest_background.png"
         else:
-            self.bg_image.source = utils.get_directory("images") + "/menu_background.png"
-
+            self.bg_image.source = f"{self.images_dir}/menu_background.png"
         self.bg_image.reload()
 
-    @staticmethod
-    def build_phases(metronome_values):
-        phases = []
-        if metronome_values.get("warm-up", 0) > 0:
-            phases.append(("Warm-up", metronome_values["warm-up"] * config.SEC_IN_MIN, False))
-        run_dur = metronome_values.get("run_min", 0) * config.SEC_IN_MIN + metronome_values.get("run_sec", 0)
-        rest_dur = metronome_values.get("rest_min", 0) * config.SEC_IN_MIN + metronome_values.get("rest_sec", 0)
-        for _ in range(metronome_values.get("cycles", 1)):
-            phases.append(("Run", run_dur, True))
-            phases.append(("Rest", rest_dur, False))
-        if metronome_values.get("cooldown", 0) > 0:
-            phases.append(("Cooldown", metronome_values["cooldown"] * config.SEC_IN_MIN, False))
-        return phases
-
-    def get_current_cycle(self):
-        count = 0
-        for i, (name, _, _) in enumerate(self.phases):
-            if name == "Run" and i <= self.current_phase_index:
-                count += 1
-        return max(1, min(count, self.metronome_values.get("cycles", 1)))
-
-    @staticmethod
-    def load_sound(name):
-        base = utils.cut_at_folder()
-        sounds_dir = f"{base}/data/sounds"
-        s = SoundLoader.load(f"{sounds_dir}/{name}.wav")
-        return s
-
+    # ----------------- Phase / Audio -----------------
     def start_phase_audio(self):
         name, duration, ticking = self.phases[self.current_phase_index]
 
@@ -186,20 +156,17 @@ class RunMetronome(FloatLayout):
 
         if ticking:
             audio = metronome_generator.generate_metronome_audio(self.metronome_values["bpm"], duration)
-
             if audio:
                 self.sound = audio
                 self.sound.play()
-        else:
-            if self.sound:
-                self.sound.stop()
 
     def advance_phase(self):
         self.reset_phase()
         self.current_phase_index += 1
         if self.current_phase_index >= len(self.phases):
             self.exit_state()
-        self.start_phase_audio()
+        else:
+            self.start_phase_audio()
 
     def go_back_phase(self):
         self.reset_phase()
@@ -215,6 +182,37 @@ class RunMetronome(FloatLayout):
         if self.countdown_sound:
             self.countdown_sound.stop()
 
+    # ----------------- Helpers -----------------
+    def get_current_cycle(self):
+        return max(
+            1,
+            min(
+                sum(1 for i, (name, _, _) in enumerate(self.phases)
+                    if name == "Run" and i <= self.current_phase_index),
+                self.metronome_values.get("cycles", 1)
+            )
+        )
+
+    @staticmethod
+    def build_phases(metronome_values):
+        phases = []
+        if metronome_values.get("warm-up", 0) > 0:
+            phases.append(("Warm-up", metronome_values["warm-up"] * config.SEC_IN_MIN, False))
+        run_dur = metronome_values.get("run_min", 0) * config.SEC_IN_MIN + metronome_values.get("run_sec", 0)
+        rest_dur = metronome_values.get("rest_min", 0) * config.SEC_IN_MIN + metronome_values.get("rest_sec", 0)
+        for _ in range(metronome_values.get("cycles", 1)):
+            phases.append(("Run", run_dur, True))
+            phases.append(("Rest", rest_dur, False))
+        if metronome_values.get("cooldown", 0) > 0:
+            phases.append(("Cooldown", metronome_values["cooldown"] * config.SEC_IN_MIN, False))
+        return phases
+
+    @staticmethod
+    def load_sound(name):
+        base = utils.cut_at_folder()
+        return SoundLoader.load(f"{base}/data/sounds/{name}.wav")
+
+    # ----------------- Stop / Exit -----------------
     def stop(self):
         if self.sound:
             self.sound.stop()
