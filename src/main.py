@@ -1,11 +1,11 @@
 import os
 from kivy.app import App
-from kivy.uix.widget import Widget
 from kivy.uix.image import Image
-from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.uix.floatlayout import FloatLayout
-from kivy.base import EventLoop
+from kivy.lang import Builder
+Builder.load_file("packages/label.kv")
+Builder.load_file("packages/button.kv")
 
 from states import start_menu
 from packages import config, utils

@@ -106,7 +106,7 @@ class CreateMetronome(FloatLayout):
 
         # Cycles stepper centered
         self.cycles_stepper.pos = (
-            (parent_width - stepper_width) / 2,
+            (parent_width - 1.5*stepper_width) / 2,
             vertical_start - vertical_spacing * 3,
         )
         self.add_widget(self.cycles_stepper)

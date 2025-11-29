@@ -1,0 +1,40 @@
+<Button>:
+    size_hint: None, None
+    background_normal: ''
+    background_down: ''
+    background_color: 0, 0, 0, 0
+    color: 0.8, 0.65, 0.1, 1  # Dark yellow/gold color
+    text_color: 0.1, 0.1, 0.1, 1  # Dark text for contrast
+
+    canvas.before:
+        # Shadow (larger when pressed)
+        Color:
+            rgba: 0, 0, 0, 0.4 if root.state == 'down' else 0.3
+        RoundedRectangle:
+            pos: root.x, root.y - (6 if root.state == 'down' else 4)
+            size: root.size
+            radius: [12, 12, 12, 12]
+
+        # Main button background (brighter when pressed)
+        Color:
+            rgba: (0.9, 0.75, 0.2, 1) if root.state == 'down' else root.color
+        RoundedRectangle:
+            pos: root.x, root.y + (2 if root.state == 'down' else 0)
+            size: root.size
+            radius: [12, 12, 12, 12]
+
+        # Subtle gradient overlay (lighter at top, more prominent when pressed)
+        Color:
+            rgba: 1, 1, 1, 0.15 if root.state == 'down' else 0.1
+        RoundedRectangle:
+            pos: root.x, root.y + root.height * 0.5 + (2 if root.state == 'down' else 0)
+            size: root.width, root.height * 0.5
+            radius: [12, 12, 12, 12]
+
+    Label:
+        text: root.text
+        color: root.text_color
+        font_size: 18
+        bold: True
+        size: self.texture_size
+        pos: root.x + (root.width - self.texture_size[0]) / 2, root.y + (root.height - self.texture_size[1]) / 2 + (2 if root.state == 'down' else 0)

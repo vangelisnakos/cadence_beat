@@ -3,6 +3,7 @@ from kivy.uix.button import Button
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 
+
 from states import create_metronome
 
 class StartMenu(FloatLayout):
@@ -12,7 +13,7 @@ class StartMenu(FloatLayout):
 
         self.layout = BoxLayout(
             orientation="vertical",
-            spacing=20,
+            spacing=50,
             padding=50,
             size_hint=(0.8, None),
             height=240,

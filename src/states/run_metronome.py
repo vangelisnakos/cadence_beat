@@ -10,7 +10,6 @@ EventLoop.idle()
 
 from packages import utils, config, metronome_generator
 
-
 class RunMetronome(FloatLayout):
     def __init__(self, app, metronome_values: dict[str, int], **kwargs):
         super().__init__(**kwargs)
@@ -33,22 +32,22 @@ class RunMetronome(FloatLayout):
 
         # --- Labels ---
         self.phase_label = Label(
-            font_size=dp(28),
+            font_size=dp(30),
             size_hint=(1, None),
             height=dp(50),
-            pos_hint={"top": 0.95}
+            pos_hint={"top": 0.9}
         )
         self.timer_label = Label(
-            font_size=dp(44),
+            font_size=dp(75),
             size_hint=(1, None),
             height=dp(80),
-            pos_hint={"center_x": 0.5, "center_y": 0.6}
+            pos_hint={"center_x": 0.5, "center_y": 0.65}
         )
         self.cycle_label = Label(
-            font_size=dp(24),
+            font_size=dp(25),
             size_hint=(1, None),
             height=dp(40),
-            pos_hint={"center_x": 0.5, "center_y": 0.5}
+            pos_hint={"center_x": 0.5, "center_y": 0.2}
         )
         self.add_widget(self.phase_label)
         self.add_widget(self.timer_label)
@@ -84,12 +83,15 @@ class RunMetronome(FloatLayout):
 
         # --- Audio & Phase State ---
         self.sound = None
-        self.countdown_sound = None
+        self.countdown_sound = self.load_sound("countdown")
+        self.end_sound = self.load_sound("end")
         self.countdown_started = False
         self.phases = self.build_phases(metronome_values)
         self.current_phase_index = 0
         self.elapsed_time = 0.0
         self.paused = False
+        self._sound_pos = None
+        self._countdown_pos = None
 
         # --- Start first phase audio & schedule UI updates ---
         self.start_phase_audio()
@@ -99,6 +101,24 @@ class RunMetronome(FloatLayout):
     def on_pause(self, instance):
         self.paused = not self.paused
         self.pause_button.text = "Resume" if self.paused else "Pause"
+
+        if self.sound:
+            if self.paused:
+                self._sound_pos = self.sound.get_pos()
+                self.sound.stop()
+            else:
+                self.sound.play()
+                if self._sound_pos:
+                    self.sound.seek(self._sound_pos)
+
+        if self.countdown_started:
+            if self.paused:
+                self._countdown_pos = self.countdown_sound.get_pos()
+                self.countdown_sound.stop()
+            else:
+                self.countdown_sound.play()
+                if self._countdown_pos:
+                    self.countdown_sound.seek(self._countdown_pos)
 
     def on_back(self, instance):
         self.go_back_phase()
@@ -136,6 +156,7 @@ class RunMetronome(FloatLayout):
             self.cycle_label.text = ""
 
         if remaining <= 0:
+            self.end_sound.play()
             self.advance_phase()
 
     def update_background(self, phase_name):
