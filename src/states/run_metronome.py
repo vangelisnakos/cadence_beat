@@ -1,59 +1,102 @@
-from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.metrics import dp
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
 from kivy.base import EventLoop
+from kivy.uix.image import Image
 EventLoop.idle()
 
 from packages import utils, config, metronome_generator
 
 
-class RunMetronome(BoxLayout):
+class RunMetronome(FloatLayout):
     def __init__(self, app, metronome_values: dict[str, int], **kwargs):
-        BoxLayout.__init__(self, orientation="vertical", spacing=dp(10), padding=dp(20), **kwargs)
+        FloatLayout.__init__(self, **kwargs)
         self.app = app
-
         self.metronome_values = metronome_values
         self.interval = config.SEC_IN_MIN / metronome_values["bpm"]
 
-        self.sound = self.load_sound("basic")
-        self.countdown_sound = self.load_sound("countdown")
-        self.countdown_started = False
+        # --- Background ---
+        self.bg_image = Image(
+            source=utils.get_directory("images") + "/menu_background.png",
+            allow_stretch=True,
+            keep_ratio=False,
+            size_hint=(1, 1),
+            pos_hint={"x": 0, "y": 0}
+        )
+        self.add_widget(self.bg_image)
 
+        # --- Labels ---
+        self.phase_label = Label(
+            text="",
+            font_size=dp(28),
+            size_hint=(1, None),
+            height=dp(50),
+            pos_hint={"top": 0.95}
+        )
+        self.add_widget(self.phase_label)
+
+        self.timer_label = Label(
+            text="0:00",
+            font_size=dp(44),
+            size_hint=(1, None),
+            height=dp(80),
+            pos_hint={"center_x": 0.5, "center_y": 0.6}
+        )
+        self.add_widget(self.timer_label)
+
+        self.cycle_label = Label(
+            text="",
+            font_size=dp(24),
+            size_hint=(1, None),
+            height=dp(40),
+            pos_hint={"center_x": 0.5, "center_y": 0.5}
+        )
+        self.add_widget(self.cycle_label)
+
+        # --- Top Row: Pause button ---
+        self.pause_button = Button(
+            text="Pause",
+            size_hint=(None, None),
+            size=(dp(80), dp(36)),
+            pos_hint={"right": 0.98, "top": 0.98}
+        )
+        self.pause_button.bind(on_press=self.on_pause)
+        self.add_widget(self.pause_button)
+
+        # --- Bottom Row: Back / Continue ---
+        self.back_button = Button(
+            text="Back",
+            size_hint=(None, None),
+            size=(dp(120), dp(50)),
+            pos_hint={"x": 0.05, "y": 0.02}
+        )
+        self.continue_button = Button(
+            text="Continue",
+            size_hint=(None, None),
+            size=(dp(120), dp(50)),
+            pos_hint={"right": 0.95, "y": 0.02}
+        )
+        self.back_button.bind(on_press=self.on_back)
+        self.continue_button.bind(on_press=self.on_continue)
+        self.add_widget(self.back_button)
+        self.add_widget(self.continue_button)
+
+        # --- Audio ---
+        self.sound = None
+        self.countdown_sound = None
+        self.countdown_started = False
         self.phases = self.build_phases(metronome_values)
         self.current_phase_index = 0
         self.elapsed_time = 0.0
         self.paused = False
 
-        self.phase_label = Label(text="", font_size=dp(28), size_hint=(1, 1), height=dp(50))
-        self.timer_label = Label(text="0:00", font_size=dp(44), size_hint=(1, 1), height=dp(80))
-        self.cycle_label = Label(text="", font_size=dp(24), size_hint=(1, 1), height=dp(40))
-
-        top_row = BoxLayout(orientation="horizontal", size_hint=(1, 1), height=dp(40))
-        spacer = Label(size_hint=(1, 1), text="")
-        self.pause_button = Button(text="Pause", size_hint=(None, None), size=(dp(80), dp(36)))
-        self.pause_button.bind(on_press=self.on_pause)
-        top_row.add_widget(spacer)
-        top_row.add_widget(self.pause_button)
-
-        self.add_widget(top_row)
-        self.add_widget(self.phase_label)
-        self.add_widget(self.timer_label)
-        self.add_widget(self.cycle_label)
-
-        bottom_row = BoxLayout(orientation="horizontal", size_hint=(1, None), height=dp(60), spacing=dp(10), padding=[dp(10), 0, dp(10), 0])
-        self.back_button = Button(text="Back", size_hint=(None, None), size=(dp(120), dp(50)))
-        self.continue_button = Button(text="Continue", size_hint=(None, None), size=(dp(120), dp(50)))
-        self.back_button.bind(on_press=self.on_back)
-        self.continue_button.bind(on_press=self.on_continue)
-        bottom_row.add_widget(self.back_button)
-        bottom_row.add_widget(Label())  # spacer
-        bottom_row.add_widget(self.continue_button)
-        self.add_widget(bottom_row)
-
+        # Start the first phase's audio
         self.start_phase_audio()
+
+        # Schedule UI updates
         Clock.schedule_interval(self.update_ui, 1 / config.FPS)
 
     def on_pause(self, instance):
@@ -74,12 +117,15 @@ class RunMetronome(BoxLayout):
         self.elapsed_time += dt
         remaining = max(0, int(duration - self.elapsed_time))
 
+        # update background
+        self.update_background(name)
+
         if remaining == 5 and not self.countdown_started:
             if self.countdown_sound:
                 self.countdown_sound.play()
             self.countdown_started = True
 
-        self.phase_label.text = f"{name}: {duration//config.SEC_IN_MIN}:{duration%config.SEC_IN_MIN:02d}"
+        self.phase_label.text = f"{name}: {duration // config.SEC_IN_MIN}:{duration % config.SEC_IN_MIN:02d}"
         minutes = remaining // config.SEC_IN_MIN
         seconds = remaining % config.SEC_IN_MIN
         self.timer_label.text = f"{minutes}:{seconds:02d}"
@@ -93,6 +139,16 @@ class RunMetronome(BoxLayout):
 
         if remaining <= 0:
             self.advance_phase()
+
+    def update_background(self, phase_name):
+        if phase_name == "Run":
+            self.bg_image.source = utils.get_directory("images") + "/run_background.png"
+        elif phase_name == "Rest":
+            self.bg_image.source = utils.get_directory("images") + "/rest_background.png"
+        else:
+            self.bg_image.source = utils.get_directory("images") + "/menu_background.png"
+
+        self.bg_image.reload()
 
     @staticmethod
     def build_phases(metronome_values):
