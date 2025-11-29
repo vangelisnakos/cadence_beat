@@ -40,4 +40,3 @@ class StartMenu(FloatLayout):
             print("Settings")
         elif instance.text == "Quit":
             App.get_running_app().stop()
-

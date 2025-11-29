@@ -71,9 +71,3 @@ class Button(Widget):
         self._touch_down = False
         self.bg_color.rgb = self.color[:3]
         return super().on_touch_up(touch)
-
-    def is_clicked(self):
-        if self.clicked:
-            self.clicked = False
-            return True
-        return False

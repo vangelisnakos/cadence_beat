@@ -71,14 +71,11 @@ class ReviewMetronome(BoxLayout):
 
     def format_seconds(self, str_type: str) -> str:
         value = self.metronome_values[f"{str_type}_sec"]
-        return f"{value:02d}"  # always 2 digits
-
-    def go_to_run(self):
-        new_state = run_metronome.RunMetronome(self.app, self.metronome_values)
-        self.app.enter_state(new_state)
+        return f"{value:02d}"
 
     def on_button_press(self, instance):
         if instance.text == "Continue":
-            self.go_to_run()
+            new_state = run_metronome.RunMetronome(self.app, self.metronome_values)
+            self.app.enter_state(new_state)
         elif instance.text == "Back":
             self.app.exit_state()
