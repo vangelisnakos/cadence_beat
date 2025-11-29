@@ -25,27 +25,27 @@ class ReviewMetronome(BoxLayout):
 
         self.labels["warmup"] = Label(
             text=f"Warm-up: {self.metronome_values['warm-up']}:00",
-            size_hint=(1, None), height=dp(40)
+            size_hint=(1, 1), height=dp(40)
         )
         self.labels["bpm"] = Label(
             text=f"BPM: {self.metronome_values['bpm']}",
-            size_hint=(1, None), height=dp(40)
+            size_hint=(1, 1), height=dp(40)
         )
         self.labels["run"] = Label(
             text=f"Run: {self.metronome_values['run_min']}:{self.format_seconds('run')}",
-            size_hint=(1, None), height=dp(40)
+            size_hint=(1, 1), height=dp(40)
         )
         self.labels["rest"] = Label(
             text=f"Rest: {self.metronome_values['rest_min']}:{self.format_seconds('rest')}",
-            size_hint=(1, None), height=dp(40)
+            size_hint=(1, 1), height=dp(40)
         )
         self.labels["cycles"] = Label(
             text=f"Cycles: {self.metronome_values['cycles']}",
-            size_hint=(1, None), height=dp(40)
+            size_hint=(1, 1), height=dp(40)
         )
         self.labels["cooldown"] = Label(
             text=f"Cooldown: {self.metronome_values['cooldown']}:00",
-            size_hint=(1, None), height=dp(40)
+            size_hint=(1, 1), height=dp(40)
         )
 
         for lbl in self.labels.values():

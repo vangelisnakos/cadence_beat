@@ -15,7 +15,6 @@ class RunMetronome(BoxLayout):
         self.app = app
 
         # ensure it fills the screen and anchored to top
-        self.size_hint = (1, 1)
         self.pos_hint = {"top": 1}
 
         self.metronome_values = metronome_values
@@ -31,12 +30,12 @@ class RunMetronome(BoxLayout):
         self.paused = False
 
         # UI
-        self.phase_label = Label(text="", font_size=dp(28), size_hint=(1, None), height=dp(50))
-        self.timer_label = Label(text="0:00", font_size=dp(44), size_hint=(1, None), height=dp(80))
-        self.cycle_label = Label(text="", font_size=dp(24), size_hint=(1, None), height=dp(40))
+        self.phase_label = Label(text="", font_size=dp(28), size_hint=(1, 1), height=dp(50))
+        self.timer_label = Label(text="0:00", font_size=dp(44), size_hint=(1, 1), height=dp(80))
+        self.cycle_label = Label(text="", font_size=dp(24), size_hint=(1, 1), height=dp(40))
 
         # top row: pause at top right -> put in horizontal layout
-        top_row = BoxLayout(orientation="horizontal", size_hint=(1, None), height=dp(40))
+        top_row = BoxLayout(orientation="horizontal", size_hint=(1, 1), height=dp(40))
         spacer = Label(size_hint=(1, 1), text="")
         self.pause_button = Button(text="Pause", size_hint=(None, None), size=(dp(80), dp(36)))
         self.pause_button.bind(on_press=self.on_pause)
