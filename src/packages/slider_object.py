@@ -6,7 +6,6 @@ from kivy.uix.slider import Slider as KivySlider
 class LabeledSlider(BoxLayout):
     def __init__(self, min_value=0, max_value=100, value=None, step=1,
                  label_text="", pos=None, **kwargs):
-        # Disable automatic sizing to allow manual positioning
         kwargs.setdefault('size_hint', (None, None))
         super().__init__(orientation="vertical", spacing=10, padding=10, **kwargs)
 
@@ -15,7 +14,6 @@ class LabeledSlider(BoxLayout):
         self.step = step
         self.value = value if value is not None else self.min
 
-        # Label showing the value
         self.label_text = label_text
         self.slider_label = Label(
             text=f"{self.label_text}: {int(self.value)}",
@@ -24,7 +22,6 @@ class LabeledSlider(BoxLayout):
         )
         self.add_widget(self.slider_label)
 
-        # The slider itself
         self.slider = KivySlider(
             min=self.min,
             max=self.max,
@@ -36,18 +33,15 @@ class LabeledSlider(BoxLayout):
         self.slider.bind(value=self.on_slider_value)
         self.add_widget(self.slider)
 
-        # Set explicit position if provided
         if pos:
             self.pos = pos
 
-        # Optional: set width/height if you want to control the total size
         if 'width' in kwargs:
             self.width = kwargs['width']
         if 'height' in kwargs:
             self.height = kwargs['height']
 
     def on_slider_value(self, instance, value):
-        # Update label dynamically
         self.slider_label.text = f"{self.label_text}: {int(value)}"
 
     def get_value(self):

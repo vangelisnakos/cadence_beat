@@ -13,7 +13,6 @@ class Stepper(BoxLayout):
         self.value = start_value if start_value is not None else self.min_value
         self.label_name = label_name
 
-        # Top label: the name of the stepper
         self.top_label = Label(
             text=self.label_name,
             size_hint=(None, None),
@@ -22,16 +21,13 @@ class Stepper(BoxLayout):
         )
         self.add_widget(self.top_label)
 
-        # Middle: horizontal layout for buttons + value
         self.middle_layout = BoxLayout(orientation="horizontal", spacing=5, size_hint=(None, None),
                                        width=width, height=50)
 
-        # Up button
         self.btn_up = Button(text="+", size_hint=(None, 1), width=dp(40))
         self.btn_up.bind(on_press=self.increment)
         self.middle_layout.add_widget(self.btn_up)
 
-        # Value label
         self.value_label = Label(
             text=str(self.value),
             size_hint=(None, 1),
@@ -39,14 +35,11 @@ class Stepper(BoxLayout):
         )
         self.middle_layout.add_widget(self.value_label)
 
-        # Down button
         self.btn_down = Button(text="-", size_hint=(None, 1), width=dp(40))
         self.btn_down.bind(on_press=self.decrement)
         self.middle_layout.add_widget(self.btn_down)
-
         self.add_widget(self.middle_layout)
 
-        # Set overall size
         self.width = width
         self.height = height
 

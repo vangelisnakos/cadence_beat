@@ -1,6 +1,5 @@
 from kivy.uix.widget import Widget
 from kivy.graphics import Color, RoundedRectangle
-from kivy.uix.label import Label
 from kivy.core.text import Label as CoreLabel
 from kivy.properties import BooleanProperty
 from packages import config
@@ -31,7 +30,6 @@ class Button(Widget):
 
         self._touch_down = False
 
-        # Draw the button
         with self.canvas:
             self.bg_color = Color(*self.color)
             self.bg_rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[self.border_radius])
@@ -46,7 +44,6 @@ class Button(Widget):
                 size=texture.size
             )
 
-        # Bind pos/size changes to update graphics
         self.bind(pos=self._update_graphics, size=self._update_graphics)
 
     def _update_graphics(self, *args):

@@ -4,7 +4,6 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.metrics import dp
 
 from states import run_metronome
-from packages import config
 
 
 class ReviewMetronome(BoxLayout):
@@ -13,40 +12,30 @@ class ReviewMetronome(BoxLayout):
         self.app = app
         self.metronome_values = metronome_values
 
-        # Layout config
         self.orientation = "vertical"
         self.spacing = dp(20)
         self.padding = dp(20)
 
-        parent_width = config.BOARD_WIDTH
-
         # ---- Display Labels ----
-        self.labels = {}
-
-        self.labels["warmup"] = Label(
+        self.labels = {"warmup": Label(
             text=f"Warm-up: {self.metronome_values['warm-up']}:00",
             size_hint=(1, 1), height=dp(40)
-        )
-        self.labels["bpm"] = Label(
+        ), "bpm": Label(
             text=f"BPM: {self.metronome_values['bpm']}",
             size_hint=(1, 1), height=dp(40)
-        )
-        self.labels["run"] = Label(
+        ), "run": Label(
             text=f"Run: {self.metronome_values['run_min']}:{self.format_seconds('run')}",
             size_hint=(1, 1), height=dp(40)
-        )
-        self.labels["rest"] = Label(
+        ), "rest": Label(
             text=f"Rest: {self.metronome_values['rest_min']}:{self.format_seconds('rest')}",
             size_hint=(1, 1), height=dp(40)
-        )
-        self.labels["cycles"] = Label(
+        ), "cycles": Label(
             text=f"Cycles: {self.metronome_values['cycles']}",
             size_hint=(1, 1), height=dp(40)
-        )
-        self.labels["cooldown"] = Label(
+        ), "cooldown": Label(
             text=f"Cooldown: {self.metronome_values['cooldown']}:00",
             size_hint=(1, 1), height=dp(40)
-        )
+        )}
 
         for lbl in self.labels.values():
             self.add_widget(lbl)
@@ -79,10 +68,6 @@ class ReviewMetronome(BoxLayout):
         button_layout.add_widget(self.continue_button)
 
         self.add_widget(button_layout)
-
-    # ----------------------
-    #   Helper Methods
-    # ----------------------
 
     def format_seconds(self, str_type: str) -> str:
         value = self.metronome_values[f"{str_type}_sec"]

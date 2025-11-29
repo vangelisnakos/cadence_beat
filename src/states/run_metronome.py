@@ -1,24 +1,23 @@
-# states/run_metronome.py
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.metrics import dp
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
+from kivy.base import EventLoop
+EventLoop.idle()
 
 from packages import utils, config
 
+SEC_IN_MIN = 60
+
 class RunMetronome(BoxLayout):
     def __init__(self, app, metronome_values: dict[str, int], **kwargs):
-        # initialize parents: State manages app reference, BoxLayout manages UI
         BoxLayout.__init__(self, orientation="vertical", spacing=dp(10), padding=dp(20), **kwargs)
         self.app = app
 
-        # ensure it fills the screen and anchored to top
-        self.pos_hint = {"top": 1}
-
         self.metronome_values = metronome_values
-        self.interval = 60.0 / max(1, metronome_values.get("bpm", 120))
+        self.interval = SEC_IN_MIN / metronome_values["bpm"]
 
         self.sound = self.load_sound("basic")
         self.countdown_sound = self.load_sound("countdown")
@@ -29,12 +28,10 @@ class RunMetronome(BoxLayout):
         self.elapsed_time = 0.0
         self.paused = False
 
-        # UI
         self.phase_label = Label(text="", font_size=dp(28), size_hint=(1, 1), height=dp(50))
         self.timer_label = Label(text="0:00", font_size=dp(44), size_hint=(1, 1), height=dp(80))
         self.cycle_label = Label(text="", font_size=dp(24), size_hint=(1, 1), height=dp(40))
 
-        # top row: pause at top right -> put in horizontal layout
         top_row = BoxLayout(orientation="horizontal", size_hint=(1, 1), height=dp(40))
         spacer = Label(size_hint=(1, 1), text="")
         self.pause_button = Button(text="Pause", size_hint=(None, None), size=(dp(80), dp(36)))
@@ -47,7 +44,6 @@ class RunMetronome(BoxLayout):
         self.add_widget(self.timer_label)
         self.add_widget(self.cycle_label)
 
-        # bottom buttons: Back / Continue
         bottom_row = BoxLayout(orientation="horizontal", size_hint=(1, None), height=dp(60), spacing=dp(10), padding=[dp(10), 0, dp(10), 0])
         self.back_button = Button(text="Back", size_hint=(None, None), size=(dp(120), dp(50)))
         self.continue_button = Button(text="Continue", size_hint=(None, None), size=(dp(120), dp(50)))
@@ -56,13 +52,11 @@ class RunMetronome(BoxLayout):
         bottom_row.add_widget(self.back_button)
         bottom_row.add_widget(Label())  # spacer
         bottom_row.add_widget(self.continue_button)
-
         self.add_widget(bottom_row)
 
-        # schedule timer update
-        Clock.schedule_interval(self._tick, 0.1)
+        Clock.schedule_interval(self.update_ui, 1 / config.FPS)
+        Clock.schedule_interval(self.play_tick, self.interval)
 
-    # UI callbacks
     def on_pause(self, instance):
         self.paused = not self.paused
         self.pause_button.text = "Resume" if self.paused else "Pause"
@@ -73,10 +67,17 @@ class RunMetronome(BoxLayout):
     def on_continue(self, instance):
         self.advance_phase()
 
-    # timer and phase logic
-    def _tick(self, dt):
+    def play_tick(self, dt):
         if self.paused or self.current_phase_index >= len(self.phases):
             return
+        name, duration, ticking = self.phases[self.current_phase_index]
+        if ticking:
+            self.sound.play()
+
+    def update_ui(self, dt):
+        if self.paused or self.current_phase_index >= len(self.phases):
+            return
+
         name, duration, ticking = self.phases[self.current_phase_index]
         self.elapsed_time += dt
         remaining = max(0, int(duration - self.elapsed_time))
@@ -86,17 +87,9 @@ class RunMetronome(BoxLayout):
                 self.countdown_sound.play()
             self.countdown_started = True
 
-        # play tick on interval
-        if ticking and self.elapsed_time >= self.interval:
-            if self.sound:
-                self.sound.play()
-            # subtract interval from elapsed so smaller drift
-            self.elapsed_time -= self.interval
-
-        # update UI
-        self.phase_label.text = f"{name}: {duration//60}:{duration%60:02d}"
-        minutes = remaining // 60
-        seconds = remaining % 60
+        self.phase_label.text = f"{name}: {duration//SEC_IN_MIN}:{duration%SEC_IN_MIN:02d}"
+        minutes = remaining // SEC_IN_MIN
+        seconds = remaining % SEC_IN_MIN
         self.timer_label.text = f"{minutes}:{seconds:02d}"
 
         if name in ["Run", "Rest"]:
@@ -109,19 +102,18 @@ class RunMetronome(BoxLayout):
         if remaining <= 0:
             self.advance_phase()
 
-    # helpers
     @staticmethod
     def build_phases(metronome_values):
         phases = []
         if metronome_values.get("warm-up", 0) > 0:
-            phases.append(("Warm-up", metronome_values["warm-up"] * 60, False))
-        run_dur = metronome_values.get("run_min", 0) * 60 + metronome_values.get("run_sec", 0)
-        rest_dur = metronome_values.get("rest_min", 0) * 60 + metronome_values.get("rest_sec", 0)
+            phases.append(("Warm-up", metronome_values["warm-up"] * SEC_IN_MIN, False))
+        run_dur = metronome_values.get("run_min", 0) * SEC_IN_MIN + metronome_values.get("run_sec", 0)
+        rest_dur = metronome_values.get("rest_min", 0) * SEC_IN_MIN + metronome_values.get("rest_sec", 0)
         for _ in range(metronome_values.get("cycles", 1)):
             phases.append(("Run", run_dur, True))
             phases.append(("Rest", rest_dur, False))
         if metronome_values.get("cooldown", 0) > 0:
-            phases.append(("Cooldown", metronome_values["cooldown"] * 60, False))
+            phases.append(("Cooldown", metronome_values["cooldown"] * SEC_IN_MIN, False))
         return phases
 
     def get_current_cycle(self):
@@ -131,28 +123,39 @@ class RunMetronome(BoxLayout):
                 count += 1
         return max(1, min(count, self.metronome_values.get("cycles", 1)))
 
-    def load_sound(self, name):
+    @staticmethod
+    def load_sound(name):
         base = utils.cut_at_folder()
         sounds_dir = f"{base}/data/sounds"
-        s = SoundLoader.load(f"{sounds_dir}/{name}.mp3")
+        s = SoundLoader.load(f"{sounds_dir}/{name}.wav")
         return s
 
     def advance_phase(self):
         self.reset_phase()
         self.current_phase_index += 1
         if self.current_phase_index >= len(self.phases):
-            # end: pop this state
-            self.app.exit_state()
+            self.exit_state()
 
     def go_back_phase(self):
+        self.reset_phase()
         if self.current_phase_index > 0:
-            self.reset_phase()
             self.current_phase_index -= 1
         else:
-            self.app.exit_state()
+            self.exit_state()
 
     def reset_phase(self):
         self.elapsed_time = 0.0
         self.countdown_started = False
         if self.countdown_sound:
             self.countdown_sound.stop()
+
+    def stop(self):
+        Clock.unschedule(self.play_tick)
+        if self.sound:
+            self.sound.stop()
+        if self.countdown_sound:
+            self.countdown_sound.stop()
+
+    def exit_state(self):
+        self.stop()
+        self.app.exit_state()

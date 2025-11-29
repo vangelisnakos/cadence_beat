@@ -18,9 +18,9 @@ class CreateMetronome(FloatLayout):
         # --- BPM Slider ---
         slider_width = parent_width * 0.75
         self.bpm_slider = slider_object.LabeledSlider(
-            min_value=150,
+            min_value=60,
             max_value=220,
-            value=160,
+            value=180,
             step=1,
             label_text="BPM",
             width=slider_width,
