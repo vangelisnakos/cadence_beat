@@ -36,6 +36,8 @@ google-services.json
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*.exe
+*.dll
 
 # Other typical Python exclusions
 *.egg-info/
@@ -48,7 +50,3 @@ buildozer-env/
 buildozer-venv/
 buildozer/
 bin/
-
-adb.exe
-AdbWinApi.dll
-AdbWinUsbApi.dll
