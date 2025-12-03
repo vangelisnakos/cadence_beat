@@ -44,4 +44,7 @@ dist/
 
 # Buildozer
 .buildozer
-*.buildozer
+buildozer-env
+buildozer
+buildozer.spec
+bin
