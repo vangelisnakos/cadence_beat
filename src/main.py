@@ -4,8 +4,12 @@ from kivy.uix.image import Image
 from kivy.core.window import Window
 from kivy.uix.floatlayout import FloatLayout
 from kivy.lang import Builder
-Builder.load_file("packages/label.kv")
-Builder.load_file("packages/button.kv")
+from pathlib import Path
+
+KV_PATH = Path(__file__).parent / "packages" / "label.kv"
+Builder.load_file(str(KV_PATH))
+KV_PATH2 = Path(__file__).parent / "packages" / "button.kv"
+Builder.load_file(str(KV_PATH2))
 
 from states import start_menu
 from packages import config, utils
@@ -45,8 +49,8 @@ class MainWidget(FloatLayout):
         Window.bind(on_key_down=self.on_key_down)
 
     def create_main_background(self):
-        image_directory = os.path.join(utils.get_directory("images"), "menu_background.png")
-        self.bg_image = Image(source=image_directory, allow_stretch=True, keep_ratio=False)
+        image_directory = utils.get_directory("images") / "menu_background.png"
+        self.bg_image = Image(source=str(image_directory), allow_stretch=True, keep_ratio=False)
         self.add_widget(self.bg_image, index=0)
 
     def enter_state(self, new_state):

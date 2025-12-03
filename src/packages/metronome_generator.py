@@ -1,7 +1,7 @@
 import wave
 import tempfile
-import os
 import io
+import os
 
 from kivy.core.audio import SoundLoader
 from packages import utils, config
@@ -9,8 +9,9 @@ from packages import utils, config
 
 def generate_metronome_audio(bpm, duration_sec):
     """Generate a WAV in memory containing perfectly spaced ticks."""
-
-    tick = SoundLoader.load(utils.cut_at_folder() + "/data/sounds/basic.wav")
+    sounds_folder = utils.get_directory("sounds")
+    sound = os.path.join(sounds_folder, "basic.wav")
+    tick = SoundLoader.load(sound)
     if not tick:
         print("ERROR: tick sound missing")
         return None

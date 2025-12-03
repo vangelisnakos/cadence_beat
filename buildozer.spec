@@ -1,27 +1,30 @@
 [app]
 
 # (str) Title of your application
-title = CadenceBeat
+title = Cadence Beat
 
 # (str) Package name
-package.name = cadenceapp
+package.name = CadenceBeat
 
 # (str) Package domain (needed for android/ios packaging)
 package.domain = org.vangelis
 
 # (str) Source code where the main.py lives
 source.dir = src
+source.include_dirs = src/packages,data
 
 # (list) Source files to include (leave empty to include all the files)
-source.include_exts = py,png,wav
+source.include_exts = py,png,wav,kv
 source.include_patterns = main.py, packages/*, data/*
 
+android.add_assets = data
+
 # (str) Application versioning
-version = 0.1
+version = 0.1.1
 
 # (list) Application requirements
 p4a.branch = master
-requirements = python3==3.10, kivy
+requirements = python3,kivy==2.3.1,filetype
 
 # (list) Supported orientations
 orientation = portrait
@@ -34,8 +37,8 @@ fullscreen = 0
 # text_color = 0.1,0.1,0.1,1
 
 # (str) Presplash & icon paths (optional)
-# presplash.filename = %(source.dir)s/data/presplash.png
-icon.filename = %(source.dir)s/data/images/icon.png
+presplash.filename = data/images/icon.png
+icon.filename = data/images/icon.png
 
 
 [buildozer]

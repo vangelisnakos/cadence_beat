@@ -1,7 +1,15 @@
+from kivy.metrics import dp
+
+FPS = 60
 
 BOARD_WIDTH = 346
 BOARD_HEIGHT = 750
-FPS = 60
+
+BUTTON_WIDTH = dp(120)
+BUTTON_HEIGHT = dp(50)
+BUTTON_X_PAD = 0.05
+BUTTON_Y_PAD = 0.02
+
 DEFAULT_FONT_SIZE = 40
 DEFAULT_FONT_TYPE = "arialblack"
 SEC_IN_MIN = 60

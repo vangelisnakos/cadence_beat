@@ -4,9 +4,9 @@ from kivy.uix.label import Label
 from kivy.metrics import dp
 
 class Stepper(BoxLayout):
-    def __init__(self, min_value=0, max_value=10, step=1, start_value=None,
-                 label_name="", size_hint=(None, None), width=200, height=100, **kwargs):
-        super().__init__(orientation="vertical", spacing=10, size_hint=size_hint, **kwargs)
+    def __init__(self, min_value: int=0, max_value: int=10, step: int=1, start_value=None,
+                 label_name: str="", size_hint=(None, None), width=dp(200), height=dp(100), **kwargs):
+        super().__init__(orientation="vertical", spacing=dp(10), size_hint=size_hint, **kwargs)
         self.min_value = min_value
         self.max_value = max_value
         self.step = step
@@ -17,7 +17,7 @@ class Stepper(BoxLayout):
         self.top_label = Label(
             text=self.label_name,
             size_hint=(1, None),
-            height=30,
+            height=dp(30),
             halign="center",
             valign="middle",
             font_size=18,
@@ -29,9 +29,9 @@ class Stepper(BoxLayout):
         # Middle layout with buttons and value
         self.middle_layout = BoxLayout(
             orientation="horizontal",
-            spacing=10,
+            spacing=dp(10),
             size_hint=(1, None),
-            height=50
+            height=dp(50)
         )
 
         # Decrement button (on the left)

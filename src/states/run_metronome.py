@@ -3,6 +3,7 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.metrics import dp
+import os
 from kivy.clock import Clock
 from kivy.base import EventLoop
 from kivy.core.audio import SoundLoader
@@ -64,18 +65,8 @@ class RunMetronome(FloatLayout):
         self.add_widget(self.pause_button)
 
         # --- Bottom Row: Back / Continue ---
-        self.back_button = Button(
-            text="Back",
-            size_hint=(None, None),
-            size=(dp(120), dp(50)),
-            pos_hint={"x": 0.05, "y": 0.02}
-        )
-        self.continue_button = Button(
-            text="Continue",
-            size_hint=(None, None),
-            size=(dp(120), dp(50)),
-            pos_hint={"right": 0.95, "y": 0.02}
-        )
+        self.back_button = utils.get_back_button()
+        self.continue_button = utils.get_continue_button()
         self.back_button.bind(on_press=self.on_back)
         self.continue_button.bind(on_press=self.on_continue)
         self.add_widget(self.back_button)
@@ -161,11 +152,12 @@ class RunMetronome(FloatLayout):
 
     def update_background(self, phase_name):
         if phase_name == "Run":
-            self.bg_image.source = f"{self.images_dir}/run_background.png"
+            new_dir = self.images_dir / "run_background.png"
         elif phase_name == "Rest":
-            self.bg_image.source = f"{self.images_dir}/rest_background.png"
+            new_dir = self.images_dir / "rest_background.png"
         else:
-            self.bg_image.source = f"{self.images_dir}/menu_background.png"
+            new_dir = self.images_dir / "menu_background.png"
+        self.bg_image.source = str(new_dir)
         self.bg_image.reload()
 
     # ----------------- Phase / Audio -----------------
@@ -230,8 +222,9 @@ class RunMetronome(FloatLayout):
 
     @staticmethod
     def load_sound(name):
-        base = utils.cut_at_folder()
-        return SoundLoader.load(f"{base}/data/sounds/{name}.wav")
+        base = utils.get_directory("sounds")
+        sound = os.path.join(base, f"{name}.wav")
+        return SoundLoader.load(sound)
 
     # ----------------- Stop / Exit -----------------
     def stop(self):

@@ -12,6 +12,10 @@ class CreateMetronome(FloatLayout):
         FloatLayout.__init__(self)
         self.app = app
 
+        self.orientation = "vertical"
+        self.spacing = dp(25)
+        self.padding = dp(20)
+
         parent_width = config.BOARD_WIDTH
         parent_height = config.BOARD_HEIGHT
 
@@ -112,27 +116,15 @@ class CreateMetronome(FloatLayout):
         self.add_widget(self.cycles_stepper)
 
         # --- Buttons ---
-        button_width = dp(120)
-        button_height = dp(50)
-
-        self.back_button = Button(
-            text="Back",
-            size_hint=(None, None),
-            size=(button_width, button_height),
-            pos=(dp(20), dp(20)),
-        )
+        self.back_button = utils.get_back_button()
         self.back_button.bind(on_press=self.on_button_press)
 
-        self.continue_button = Button(
-            text="Continue",
-            size_hint=(None, None),
-            size=(button_width, button_height),
-            pos=(parent_width - button_width - dp(20), dp(20)),
-        )
+        self.continue_button = utils.get_continue_button()
         self.continue_button.bind(on_press=self.on_button_press)
 
         self.add_widget(self.back_button)
         self.add_widget(self.continue_button)
+
 
     def get_values(self):
         return {

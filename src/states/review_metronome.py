@@ -3,6 +3,7 @@ from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 from kivy.metrics import dp
 
+from packages import config
 from states import run_metronome
 
 
@@ -58,19 +59,17 @@ class ReviewMetronome(BoxLayout):
             height=dp(60)
         )
 
-        button_width = dp(120)
-
         self.back_button = Button(
             text="Back",
             size_hint=(None, None),
-            size=(button_width, dp(50))
+            size=(config.BUTTON_WIDTH, config.BUTTON_HEIGHT)
         )
         self.back_button.bind(on_press=self.on_button_press)
 
         self.continue_button = Button(
             text="Continue",
             size_hint=(None, None),
-            size=(button_width, dp(50))
+            size=(config.BUTTON_WIDTH, config.BUTTON_HEIGHT)
         )
         self.continue_button.bind(on_press=self.on_button_press)
 

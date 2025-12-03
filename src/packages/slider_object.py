@@ -4,10 +4,10 @@ from kivy.uix.label import Label
 from kivy.uix.slider import Slider as KivySlider
 
 class LabeledSlider(BoxLayout):
-    def __init__(self, min_value=0, max_value=100, value=None, step=1,
-                 label_text="", pos=None, **kwargs):
+    def __init__(self, min_value: int=0, max_value: int=1000, value=None, step: int=1,
+                 label_text: str="", pos=None, **kwargs):
         kwargs.setdefault('size_hint', (None, None))
-        super().__init__(orientation="vertical", spacing=5, padding=10, **kwargs)
+        super().__init__(orientation="vertical", spacing=dp(5), padding=dp(10), **kwargs)
 
         self.min = min_value
         self.max = max_value
