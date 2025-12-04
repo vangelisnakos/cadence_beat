@@ -16,11 +16,10 @@ class CreateMetronome(FloatLayout):
         self.spacing = dp(25)
         self.padding = dp(20)
 
-        parent_width = config.BOARD_WIDTH
-        parent_height = config.BOARD_HEIGHT
+        parent_width = dp(config.BOARD_WIDTH)
 
         # --- BPM Slider ---
-        slider_width = parent_width * 0.75
+        slider_width = dp(parent_width * 0.75)
         self.bpm_slider = slider_object.LabeledSlider(
             min_value=60,
             max_value=220,
@@ -29,14 +28,13 @@ class CreateMetronome(FloatLayout):
             label_text="BPM",
             width=slider_width,
             height=dp(100),
-            pos=((parent_width - slider_width) / 2, dp(650)),
+            pos_hint={'center_x': 0.5, 'y': 0.85}
         )
         self.add_widget(self.bpm_slider)
 
         # --- Stepper sizing ---
-        scale = 0.8
-        stepper_width = dp(125) * scale
-        stepper_height = dp(40) * scale
+        stepper_width = dp(100)
+        stepper_height = dp(30)
 
         # --- Stepper instances ---
         self.warmup_stepper = number_stepper.Stepper(
@@ -95,24 +93,21 @@ class CreateMetronome(FloatLayout):
 
         # Warmup / Cooldown row
         pair1 = pair(self.warmup_stepper, self.cooldown_stepper)
-        pair1.pos = (0, vertical_start)
+        pair1.pos_hint={'center_x': 0.5, 'y': 0.7}
         self.add_widget(pair1)
 
         # Run minutes / Run seconds
         pair2 = pair(self.run_minutes_stepper, self.run_seconds_stepper)
-        pair2.pos = (0, vertical_start - vertical_spacing)
+        pair2.pos_hint={'center_x': 0.5, 'y': 0.55}
         self.add_widget(pair2)
 
         # Rest minutes / Rest seconds
         pair3 = pair(self.rest_minutes_stepper, self.rest_seconds_stepper)
-        pair3.pos = (0, vertical_start - vertical_spacing * 2)
+        pair3.pos_hint={'center_x': 0.5, 'y': 0.4}
         self.add_widget(pair3)
 
         # Cycles stepper centered
-        self.cycles_stepper.pos = (
-            (parent_width - 1.5*stepper_width) / 2,
-            vertical_start - vertical_spacing * 3,
-        )
+        self.cycles_stepper.pos_hint={'center_x': 0.5, 'y': 0.25}
         self.add_widget(self.cycles_stepper)
 
         # --- Buttons ---

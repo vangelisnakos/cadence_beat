@@ -1,11 +1,11 @@
-from kivy.metrics import dp
+from kivy.metrics import dp, sp
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.slider import Slider as KivySlider
 
 class LabeledSlider(BoxLayout):
     def __init__(self, min_value: int=0, max_value: int=1000, value=None, step: int=1,
-                 label_text: str="", pos=None, **kwargs):
+                 label_text: str="", pos_hint=None, **kwargs):
         kwargs.setdefault('size_hint', (None, None))
         super().__init__(orientation="vertical", spacing=dp(5), padding=dp(10), **kwargs)
 
@@ -22,7 +22,7 @@ class LabeledSlider(BoxLayout):
             height=dp(25),
             halign="center",
             valign="bottom",
-            font_size=20,
+            font_size=sp(20),
             bold=True
         )
         self.slider_label.bind(size=self.slider_label.setter('text_size'))
@@ -41,8 +41,8 @@ class LabeledSlider(BoxLayout):
         self.slider.bind(value=self.on_slider_value)
         self.add_widget(self.slider)
 
-        if pos:
-            self.pos = pos
+        if pos_hint:
+            self.pos_hint = pos_hint
 
         if 'width' in kwargs:
             self.width = kwargs['width']

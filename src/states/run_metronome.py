@@ -20,10 +20,11 @@ class RunMetronome(FloatLayout):
 
         # --- Cached image directory ---
         self.images_dir = utils.get_directory("images")
+        image_directory = self.images_dir / "menu_background.png"
 
         # --- Background ---
         self.bg_image = Image(
-            source=f"{self.images_dir}/menu_background.png",
+            source=str(image_directory),
             allow_stretch=True,
             keep_ratio=False,
             size_hint=(1, 1),

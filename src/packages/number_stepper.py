@@ -1,7 +1,7 @@
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
-from kivy.metrics import dp
+from kivy.metrics import dp, sp
 
 class Stepper(BoxLayout):
     def __init__(self, min_value: int=0, max_value: int=10, step: int=1, start_value=None,
@@ -39,7 +39,7 @@ class Stepper(BoxLayout):
             text="-",
             size_hint=(None, 1),
             width=dp(50),
-            font_size=24
+            font_size=sp(24)
         )
         self.btn_down.bind(on_press=self.decrement)
         self.middle_layout.add_widget(self.btn_down)
@@ -51,7 +51,7 @@ class Stepper(BoxLayout):
             width=dp(40),
             halign="center",
             valign="middle",
-            font_size=22,
+            font_size=sp(22),
             bold=True
         )
         self.value_label.bind(size=self.value_label.setter('text_size'))
@@ -62,7 +62,7 @@ class Stepper(BoxLayout):
             text="+",
             size_hint=(None, 1),
             width=dp(50),
-            font_size=24
+            font_size=sp(24)
         )
         self.btn_up.bind(on_press=self.increment)
         self.middle_layout.add_widget(self.btn_up)

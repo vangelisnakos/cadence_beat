@@ -12,6 +12,7 @@ class ReviewMetronome(BoxLayout):
         super().__init__()
         self.app = app
         self.metronome_values = metronome_values
+        self.add_widget(BoxLayout(size_hint=(1, 1)))
 
         self.orientation = "vertical"
         self.spacing = dp(25)

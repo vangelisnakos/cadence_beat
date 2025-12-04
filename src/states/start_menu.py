@@ -2,6 +2,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
+from kivy.metrics import dp
 
 
 from states import create_metronome
@@ -13,10 +14,10 @@ class StartMenu(FloatLayout):
 
         self.layout = BoxLayout(
             orientation="vertical",
-            spacing=50,
-            padding=50,
+            spacing=dp(50),
+            padding=dp(50),
             size_hint=(0.8, None),
-            height=240,
+            height=dp(240),
             pos_hint={"center_x": 0.5, "center_y": 0.5}
         )
 
@@ -25,7 +26,7 @@ class StartMenu(FloatLayout):
             btn = Button(
                 text=text,
                 size_hint=(1, None),
-                height=60
+                height=dp(60)
             )
             btn.bind(on_press=self.on_button_press)
             self.layout.add_widget(btn)
