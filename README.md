@@ -1,27 +1,24 @@
 # CadenceBeat
 
-**CadenceBeat** is a terminal-based metronome app, designed for runners, musicians, and anyone who wants to maintain a consistent rhythm in training or performance. Lightweight, fast, and customizable for a seamless local experience.
+**CadenceBeat** is an interval metronome app, designed for runners who want to build up a new running cadence.
+Listening to a steady metronome helps run at the same cadence as the metronome BPMs. The goal of the app is to 
+use it for any training (Threshold, Interval, Repetition) as you can set the warm up time, where no metronome
+sound is played and then schedule cycles of run/rest where the metronome will only play while running. Finally, 
+there is also a cooldown period with no sound also.
 
-## Features
-
-- Simple terminal user interface
-- Adjustable tempo and time signature
-- Audio cues for beats and downbeats
-- Designed for running and fitness feedback
-- Lightweight and cross-platform
-
-## Installation
+## Installation (on Windows)
 
 - Run `pip install -e .` to install all requirements
+- For Android, you can ask me for a built apk
 
-## 6. Format:
+## Format:
 - Install pre-commit: `pip install pre-commit`
 - Install hooks: `pre-commit install`
 - Run for all files: `pre-commit run --all-files`
 
 ## Usage
 
-- Select your desired BPM (beats per minute) and time signature.
+- Select your desired BPM (beats per minute) and time intervals.
 - Start the metronome and follow the rhythmic cues.
 - For runners: synchronize your stride with the metronome beats for improved cadence.
 
@@ -43,5 +40,6 @@ This project is licensed under the MIT License – see the LICENSE file for deta
 Developed by Vangelis Nakos
 
 ## TODO
-- make it a phone app
-- add music
+- Add more details in each State
+- Add a settings menu
+- Add more Metronome sound options

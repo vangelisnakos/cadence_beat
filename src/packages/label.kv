@@ -1,0 +1,20 @@
+<Label>:
+    color: 0.95, 0.95, 0.95, 1  # Slightly off-white for softer look
+    font_size: sp(20)
+    bold: False
+
+    # Text shadow for depth
+    canvas.before:
+        Color:
+            rgba: 0, 0, 0, 0.3
+        Rectangle:
+            texture: self.texture
+            size: self.texture_size
+            pos: self.center_x - self.texture_size[0] / 2 + 1, self.center_y - self.texture_size[1] / 2 - 1
+
+        Color:
+            rgba: root.color
+        Rectangle:
+            texture: self.texture
+            size: self.texture_size
+            pos: self.center_x - self.texture_size[0] / 2, self.center_y - self.texture_size[1] / 2

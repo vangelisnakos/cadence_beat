@@ -36,8 +36,17 @@ google-services.json
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*.exe
+*.dll
 
 # Other typical Python exclusions
 *.egg-info/
 dist/
 .eggs/
+
+# Buildozer
+.buildozer/
+buildozer-env/
+buildozer-venv/
+buildozer/
+bin/

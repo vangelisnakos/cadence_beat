@@ -1,97 +1,118 @@
-import pygame
+from kivy.metrics import dp
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.button import Button
 
-from states import state, review_metronome
-from packages import  slider_object, utils, number_stepper, config
+from packages import config, number_stepper, slider_object, utils
+from states import review_metronome
 
 
-class CreateMetronome(state.State):
-    slider_width = 200
-    slider_height = 60
-
-    stepper_width = 125
-    stepper_height = 40
-
+class CreateMetronome(FloatLayout):
     def __init__(self, app):
-        state.State.__init__(self, app)
-        slider_x = (config.BOARD_WIDTH - self.slider_width) // 2
-        slider_rect = pygame.Rect(slider_x, 75, self.slider_width, self.slider_height)
-        self.slider = slider_object.Slider(slider_rect, 150, 220, name="BPM")
+        FloatLayout.__init__(self)
+        self.app = app
 
-        stepper_horizontal_space = (config.BOARD_WIDTH - 2 * self.stepper_width) // 3
-        minutes_x = 0.8 * stepper_horizontal_space
-        seconds_x = 2 * stepper_horizontal_space + self.stepper_width
-        self.font = utils.get_default_font()
+        self.orientation = "vertical"
+        self.spacing = dp(25)
+        self.padding = dp(20)
 
-        self.cycles_title_rect = pygame.Rect(minutes_x, 160, seconds_x - minutes_x, self.stepper_height)
-        self.cycles_text_details = utils.get_blit_text(self.cycles_title_rect, "Cycles: ")
-        cycles_stepper_rect = pygame.Rect(seconds_x, 160, self.stepper_width, self.stepper_height)
-        self.cycles_stepper = number_stepper.NumberStepper(cycles_stepper_rect, 1, 20)
+        # --- BPM Slider ---
+        self.bpm_slider = slider_object.LabeledSlider(
+            min_value=60,
+            max_value=220,
+            value=180,
+            step=1,
+            label_text="BPM",
+            size_hint=(0.9, None),
+            height=dp(100),
+            pos_hint={'center_x': 0.5, 'y': 0.85}
+        )
+        self.add_widget(self.bpm_slider)
 
-        self.run_title_rect = pygame.Rect(minutes_x, 215, seconds_x + self.stepper_width - minutes_x, 50)
-        self.run_text_details = utils.get_blit_text(self.run_title_rect, "- Run Time -")
-        run_minutes_stepper_rect = pygame.Rect(minutes_x, 300, self.stepper_width, self.stepper_height)
-        self.run_minutes_stepper = number_stepper.NumberStepper(run_minutes_stepper_rect, 0, 20, name="minutes")
-        run_seconds_stepper_rect = pygame.Rect(seconds_x, 300, self.stepper_width, self.stepper_height)
-        self.run_seconds_stepper = number_stepper.NumberStepper(run_seconds_stepper_rect, 0, 60, name="seconds", step=10)
+        # --- Stepper sizing ---
+        stepper_width = dp(100)
+        stepper_height = dp(30) # Might need this
 
-        self.rest_title_rect = pygame.Rect(minutes_x, 365, seconds_x + self.stepper_width - minutes_x, 50)
-        self.rest_text_details = utils.get_blit_text(self.rest_title_rect, "- Rest Time -")
-        rest_minutes_stepper_rect = pygame.Rect(minutes_x, 450, self.stepper_width, self.stepper_height)
-        self.rest_minutes_stepper = number_stepper.NumberStepper(rest_minutes_stepper_rect, 0, 20, name="minutes")
-        rest_seconds_stepper_rect = pygame.Rect(seconds_x, 450, self.stepper_width, self.stepper_height)
-        self.rest_seconds_stepper = number_stepper.NumberStepper(rest_seconds_stepper_rect, 0, 60, name="seconds", step=10)
+        # --- Stepper instances ---
+        self.warmup_stepper = number_stepper.Stepper(
+            0, 20, start_value=0, label_name="Warm-up"
+        )
+        self.cooldown_stepper = number_stepper.Stepper(
+            0, 20, start_value=0, label_name="Cooldown"
+        )
+        self.run_minutes_stepper = number_stepper.Stepper(
+            0, 20, start_value=0, label_name="Minutes"
+        )
+        self.run_seconds_stepper = number_stepper.Stepper(
+            0,
+            60,
+            step=10,
+            start_value=0,
+            label_name="Seconds",
+        )
+        self.rest_minutes_stepper = number_stepper.Stepper(
+            0, 20, start_value=0, label_name="Minutes"
+        )
+        self.rest_seconds_stepper = number_stepper.Stepper(
+            0,
+            60,
+            step=10,
+            start_value=0,
+            label_name="Seconds",
+        )
+        self.cycles_stepper = number_stepper.Stepper(
+            1, 20, start_value=1, label_name="Cycles"
+        )
 
-        self.prepare_title_rect = pygame.Rect(minutes_x, 515, seconds_x + self.stepper_width - minutes_x, 50)
-        self.prepare_text_details = utils.get_blit_text(self.prepare_title_rect, "- Prepare -")
-        warmup_stepper_rect = pygame.Rect(minutes_x, 600, self.stepper_width, self.stepper_height)
-        self.warmup_stepper = number_stepper.NumberStepper(warmup_stepper_rect, 0, 20, name="warm-up")
-        cooldown_stepper_rect = pygame.Rect(seconds_x, 600, self.stepper_width, self.stepper_height)
-        self.cooldown_stepper = number_stepper.NumberStepper(cooldown_stepper_rect, 0, 20, name="cooldown")
+        # --- Helper for horizontal pairs ---
+        def pair(left, right):
+            h = BoxLayout(
+                orientation="horizontal",
+                spacing=dp(20),
+                size_hint=(1, None),
+                height=stepper_height,
+                padding=[dp(20), 0, dp(20), 0],
+            )
+            left.size_hint_x = 0.5
+            right.size_hint_x = 0.5
+            h.add_widget(left)
+            h.add_widget(right)
+            return h
 
+        # --- Vertical positioning ---
+        # Warmup / Cooldown row
+        pair1 = pair(self.warmup_stepper, self.cooldown_stepper)
+        pair1.pos_hint={'center_x': 0.5, 'y': 0.7}
+        self.add_widget(pair1)
+
+        # Run minutes / Run seconds
+        pair2 = pair(self.run_minutes_stepper, self.run_seconds_stepper)
+        pair2.pos_hint={'center_x': 0.5, 'y': 0.55}
+        self.add_widget(pair2)
+
+        # Rest minutes / Rest seconds
+        pair3 = pair(self.rest_minutes_stepper, self.rest_seconds_stepper)
+        pair3.pos_hint={'center_x': 0.5, 'y': 0.4}
+        self.add_widget(pair3)
+
+        # Cycles stepper centered
+        self.cycles_stepper.pos_hint={'center_x': 0.5, 'y': 0.25}
+        self.add_widget(self.cycles_stepper)
+
+        # --- Buttons ---
         self.back_button = utils.get_back_button()
+        self.back_button.bind(on_press=self.on_button_press)
+
         self.continue_button = utils.get_continue_button()
-        utils.align_button_font_size(self.back_button, self.continue_button)
+        self.continue_button.bind(on_press=self.on_button_press)
 
-    def update(self, variables):
-        self.slider.update(self.app.right_click)
-        self.run_minutes_stepper.update(self.app)
-        self.run_seconds_stepper.update(self.app)
-        self.rest_minutes_stepper.update(self.app)
-        self.rest_seconds_stepper.update(self.app)
-        self.warmup_stepper.update(self.app)
-        self.cooldown_stepper.update(self.app)
-        self.cycles_stepper.update(self.app)
+        self.add_widget(self.back_button)
+        self.add_widget(self.continue_button)
 
-        if self.continue_button.is_clicked(self.app):
-            new_state = review_metronome.ReviewMetronome(self.app, self.get_values())
-            new_state.enter_state()
-        if self.back_button.is_clicked(self.app):
-            self.exit_state()
-
-    def render(self, surface):
-        self.slider.draw(self.app.screen)
-
-        surface.blit(*self.cycles_text_details)
-        self.cycles_stepper.draw(self.app.screen, self.font)
-
-        surface.blit(*self.run_text_details)
-        self.run_minutes_stepper.draw(self.app.screen, self.font)
-        self.run_seconds_stepper.draw(self.app.screen, self.font)
-
-        surface.blit(*self.rest_text_details)
-        self.rest_minutes_stepper.draw(self.app.screen, self.font)
-        self.rest_seconds_stepper.draw(self.app.screen, self.font)
-
-        surface.blit(*self.prepare_text_details)
-        self.warmup_stepper.draw(self.app.screen, self.font)
-        self.cooldown_stepper.draw(self.app.screen, self.font)
-
-        self.continue_button.draw(surface)
-        self.back_button.draw(surface)
 
     def get_values(self):
         return {
-            "bpm": self.slider.value,
+            "bpm": int(self.bpm_slider.get_value()),
             "warm-up": self.warmup_stepper.value,
             "run_min": self.run_minutes_stepper.value,
             "run_sec": self.run_seconds_stepper.value,
@@ -100,3 +121,14 @@ class CreateMetronome(state.State):
             "cycles": self.cycles_stepper.value,
             "cooldown": self.cooldown_stepper.value,
         }
+
+    def go_to_review(self):
+        values = self.get_values()
+        new_state = review_metronome.ReviewMetronome(self.app, values)
+        self.app.enter_state(new_state)
+
+    def on_button_press(self, instance):
+        if instance.text == "Continue":
+            self.go_to_review()
+        elif instance.text == "Back":
+            self.app.exit_state()

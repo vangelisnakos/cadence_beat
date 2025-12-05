@@ -1,88 +1,61 @@
-import pygame
+from kivy.metrics import dp, sp
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.slider import Slider as KivySlider
 
-from packages import config, utils
+class LabeledSlider(BoxLayout):
+    def __init__(self, min_value: int=0, max_value: int=1000, value=None, step: int=1,
+                 label_text: str="", pos_hint=None, **kwargs):
+        kwargs.setdefault('size_hint', (None, None))
+        super().__init__(orientation="vertical", spacing=dp(5), padding=dp(10), **kwargs)
 
-class Slider:
-    def __init__(
-        self,
-        rect: pygame.Rect,
-        min_value: int,
-        max_value: int,
-        bar_color: tuple = config.BUTTON_COLOR_HOVER,
-        handle_color: tuple = config.BUTTON_COLOR,
-        text_color: tuple = config.WHITE,
-        border_radius: int = 8,
-        font: pygame.font.Font | None = None,
-        name: str = ""
-    ):
-        self.rect = rect
-        self.min_value = min_value
-        self.max_value = max_value
-        self.value = min_value
-        self.font = font or utils.get_default_font()
-        self.name = name
-        self.name_font = utils.get_font_given_rect_and_text(self.rect, self.name)
+        self.min = min_value
+        self.max = max_value
+        self.step = step
+        self.value = value if value is not None else self.min
+        self.label_text = label_text
 
-        self.bar_color = bar_color
-        self.text_color = text_color
-        self.handle_color = handle_color
+        # Top label with centered text
+        self.slider_label = Label(
+            text=f"{self.label_text}: {int(self.value)}",
+            size_hint=(1, None),
+            height=dp(25),
+            halign="center",
+            valign="bottom",
+            font_size=sp(20),
+            bold=True
+        )
+        self.slider_label.bind(size=self.slider_label.setter('text_size'))
+        self.add_widget(self.slider_label)
 
-        self.border_radius = border_radius
-        self.ball_radius = self.rect.height // 8
-        self.padding = self.ball_radius * 2
+        # Slider with bigger cursor
+        self.slider = KivySlider(
+            min=self.min,
+            max=self.max,
+            value=self.value,
+            step=self.step,
+            size_hint=(1, None),
+            height=dp(50),
+            cursor_size=(dp(30), dp(30))
+        )
+        self.slider.bind(value=self.on_slider_value)
+        self.add_widget(self.slider)
 
-    def handle_pos(self):
-        padded_width = self.rect.width - 2 * self.padding
-        ratio = (self.value - self.min_value) / (self.max_value - self.min_value)
-        x = self.rect.x + self.padding + ratio * padded_width
-        y = self.rect.y + self.rect.height // 2
-        return int(x), int(y)
+        if pos_hint:
+            self.pos_hint = pos_hint
 
-    def draw_shadow(self, surface):
-        shadow_offset = 4
-        shadow_rect = self.rect.move(shadow_offset, shadow_offset)
-        pygame.draw.rect(surface, config.BLACK, shadow_rect, border_radius=self.border_radius)
+        if 'width' in kwargs:
+            self.width = kwargs['width']
+        if 'height' in kwargs:
+            self.height = kwargs['height']
 
-    def draw_background(self, surface):
-        pygame.draw.rect(surface, self.bar_color, self.rect, border_radius=self.border_radius)
+    def on_slider_value(self, instance, value):
+        self.slider_label.text = f"{self.label_text}: {int(value)}"
+        self.value = value
 
-    def draw_edge(self, surface):
-        pygame.draw.rect(surface,  config.WHITE, self.rect, width=2, border_radius=self.border_radius)
+    def get_value(self):
+        return self.slider.value
 
-    def draw_line(self, surface):
-        line_y = self.rect.y + self.rect.height // 2
-        start_pos = (self.rect.x + self.padding, line_y)
-        end_pos = (self.rect.x + self.rect.width - self.padding, line_y)
-        line_color = config.GREY
-        pygame.draw.line(surface, line_color, start_pos, end_pos, 3)
-
-    def draw_ball(self, surface):
-        hx, hy = self.handle_pos()
-        pygame.draw.circle(surface, self.handle_color, (hx, hy), self.ball_radius)
-
-    def draw_value(self, surface):
-        text_surf = self.name_font.render(f"{self.name}: {self.value}", True, self.text_color)
-        text_rect = text_surf.get_rect(center=self.rect.center)
-        text_rect.y -= self.rect.height
-        surface.blit(text_surf, text_rect)
-
-    def draw(self, surface):
-        pygame.draw.rect(surface, self.bar_color, self.rect, border_radius=self.border_radius)
-
-        self.draw_shadow(surface)
-        self.draw_background(surface)
-        self.draw_edge(surface)
-
-        self.draw_line(surface)
-        self.draw_ball(surface)
-        self.draw_value(surface)
-
-    def update(self, is_right_click: bool):
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        padded_width = self.rect.width - 2 * self.padding
-        ratio = max(0, min(1, (mouse_x - (self.rect.x + self.padding)) / padded_width))
-        is_mouse_on_slider = (mouse_x - self.handle_pos()[0]) ** 2 + (mouse_y - self.handle_pos()[1]) ** 2 <= (
-                    self.rect.height // 2 + 2) ** 2
-        dragging = is_right_click and is_mouse_on_slider
-        if dragging:
-            self.value = int(ratio * (self.max_value - self.min_value) + self.min_value)
+    def set_value(self, value):
+        if self.min <= value <= self.max:
+            self.slider.value = value

@@ -1,26 +1,44 @@
-from states import state, create_metronome
-from packages import  utils
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.app import App
+from kivy.uix.floatlayout import FloatLayout
+from kivy.metrics import dp
 
 
-class StartMenu(state.State):
+from states import create_metronome
 
+class StartMenu(FloatLayout):
     def __init__(self, app):
-        state.State.__init__(self, app)
-        self.buttons = utils.assign_buttons_to_space(self.app.screen.get_rect(),
-                                                     ["Create Metronome", "Settings", "Quit"],
-                                                     x_division=2)
+        FloatLayout.__init__(self, size_hint=(1,1))
+        self.app = app
 
-    def update(self, variables):
-        for button in self.buttons:
-            if button.is_clicked(self.app):
-                if button.text == "Create Metronome":
-                    new_state = create_metronome.CreateMetronome(self.app)
-                    new_state.enter_state()
-                elif button.text == "Settings":
-                    print("set")
-                elif button.text == "Quit":
-                    self.app.running = False
+        self.layout = BoxLayout(
+            orientation="vertical",
+            spacing=dp(50),
+            padding=dp(50),
+            size_hint=(0.8, None),
+            height=dp(240),
+            pos_hint={"center_x": 0.5, "center_y": 0.5}
+        )
 
-    def render(self, surface):
-        for button in self.buttons:
-            button.draw(surface)
+        self.buttons = []
+        for text in ["Create Metronome", "Settings", "Quit"]:
+            btn = Button(
+                text=text,
+                size_hint=(1, None),
+                height=dp(60)
+            )
+            btn.bind(on_press=self.on_button_press)
+            self.layout.add_widget(btn)
+            self.buttons.append(btn)
+
+        self.add_widget(self.layout)
+
+    def on_button_press(self, instance):
+        if instance.text == "Create Metronome":
+            new_state = create_metronome.CreateMetronome(self.app)
+            self.app.enter_state(new_state)
+        elif instance.text == "Settings":
+            print("Settings")
+        elif instance.text == "Quit":
+            App.get_running_app().stop()
