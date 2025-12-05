@@ -10,8 +10,6 @@ BUTTON_HEIGHT = dp(50)
 BUTTON_X_PAD = 0.05
 BUTTON_Y_PAD = 0.02
 
-DEFAULT_FONT_SIZE = sp(40)
-DEFAULT_FONT_TYPE = "arialblack"
 SEC_IN_MIN = 60
 
 def rgb(c):

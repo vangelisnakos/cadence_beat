@@ -1,11 +1,13 @@
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.metrics import dp, sp
 
+
 class Stepper(BoxLayout):
     def __init__(self, min_value: int=0, max_value: int=10, step: int=1, start_value=None,
-                 label_name: str="", size_hint=(None, None), width=dp(200), height=dp(100), **kwargs):
+                 label_name: str="", size_hint=(0.5, None), **kwargs):
         super().__init__(orientation="vertical", spacing=dp(10), size_hint=size_hint, **kwargs)
         self.min_value = min_value
         self.max_value = max_value
@@ -20,7 +22,7 @@ class Stepper(BoxLayout):
             height=dp(30),
             halign="center",
             valign="middle",
-            font_size=18,
+            font_size=sp(18),
             bold=True
         )
         self.top_label.bind(size=self.top_label.setter('text_size'))
@@ -33,6 +35,7 @@ class Stepper(BoxLayout):
             size_hint=(1, None),
             height=dp(50)
         )
+        self.middle_layout.add_widget(Widget(size_hint_x=1))
 
         # Decrement button (on the left)
         self.btn_down = Button(
@@ -48,7 +51,7 @@ class Stepper(BoxLayout):
         self.value_label = Label(
             text=str(self.value),
             size_hint=(None, 1),
-            width=dp(40),
+            width=dp(30),
             halign="center",
             valign="middle",
             font_size=sp(22),
@@ -66,11 +69,9 @@ class Stepper(BoxLayout):
         )
         self.btn_up.bind(on_press=self.increment)
         self.middle_layout.add_widget(self.btn_up)
+        self.middle_layout.add_widget(Widget(size_hint_x=1))
 
         self.add_widget(self.middle_layout)
-
-        self.width = width
-        self.height = height
 
     def increment(self, instance):
         if self.value < self.max_value:

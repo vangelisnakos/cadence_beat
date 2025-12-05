@@ -16,17 +16,14 @@ class CreateMetronome(FloatLayout):
         self.spacing = dp(25)
         self.padding = dp(20)
 
-        parent_width = dp(config.BOARD_WIDTH)
-
         # --- BPM Slider ---
-        slider_width = dp(parent_width * 0.75)
         self.bpm_slider = slider_object.LabeledSlider(
             min_value=60,
             max_value=220,
             value=180,
             step=1,
             label_text="BPM",
-            width=slider_width,
+            size_hint=(0.9, None),
             height=dp(100),
             pos_hint={'center_x': 0.5, 'y': 0.85}
         )
@@ -34,17 +31,17 @@ class CreateMetronome(FloatLayout):
 
         # --- Stepper sizing ---
         stepper_width = dp(100)
-        stepper_height = dp(30)
+        stepper_height = dp(30) # Might need this
 
         # --- Stepper instances ---
         self.warmup_stepper = number_stepper.Stepper(
-            0, 20, start_value=0, label_name="Warm-up", width=stepper_width, height=stepper_height
+            0, 20, start_value=0, label_name="Warm-up"
         )
         self.cooldown_stepper = number_stepper.Stepper(
-            0, 20, start_value=0, label_name="Cooldown", width=stepper_width, height=stepper_height
+            0, 20, start_value=0, label_name="Cooldown"
         )
         self.run_minutes_stepper = number_stepper.Stepper(
-            0, 20, start_value=0, label_name="Minutes", width=stepper_width, height=stepper_height
+            0, 20, start_value=0, label_name="Minutes"
         )
         self.run_seconds_stepper = number_stepper.Stepper(
             0,
@@ -52,11 +49,9 @@ class CreateMetronome(FloatLayout):
             step=10,
             start_value=0,
             label_name="Seconds",
-            width=stepper_width,
-            height=stepper_height,
         )
         self.rest_minutes_stepper = number_stepper.Stepper(
-            0, 20, start_value=0, label_name="Minutes", width=stepper_width, height=stepper_height
+            0, 20, start_value=0, label_name="Minutes"
         )
         self.rest_seconds_stepper = number_stepper.Stepper(
             0,
@@ -64,11 +59,9 @@ class CreateMetronome(FloatLayout):
             step=10,
             start_value=0,
             label_name="Seconds",
-            width=stepper_width,
-            height=stepper_height,
         )
         self.cycles_stepper = number_stepper.Stepper(
-            1, 20, start_value=1, label_name="Cycles", width=stepper_width, height=stepper_height
+            1, 20, start_value=1, label_name="Cycles"
         )
 
         # --- Helper for horizontal pairs ---
@@ -76,8 +69,7 @@ class CreateMetronome(FloatLayout):
             h = BoxLayout(
                 orientation="horizontal",
                 spacing=dp(20),
-                size_hint=(None, None),
-                width=parent_width,
+                size_hint=(1, None),
                 height=stepper_height,
                 padding=[dp(20), 0, dp(20), 0],
             )
@@ -88,9 +80,6 @@ class CreateMetronome(FloatLayout):
             return h
 
         # --- Vertical positioning ---
-        vertical_start = dp(550)
-        vertical_spacing = dp(100)
-
         # Warmup / Cooldown row
         pair1 = pair(self.warmup_stepper, self.cooldown_stepper)
         pair1.pos_hint={'center_x': 0.5, 'y': 0.7}

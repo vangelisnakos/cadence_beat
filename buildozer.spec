@@ -11,16 +11,16 @@ package.domain = org.vangelis
 
 # (str) Source code where the main.py lives
 source.dir = src
-source.include_dirs = src/packages,data
+source.include_dirs = src/packages, src/data
 
 # (list) Source files to include (leave empty to include all the files)
 source.include_exts = py,png,wav,kv
-source.include_patterns = main.py, packages/*, data/*
+source.include_patterns = main.py, packages/**, data/**
 
-android.add_assets = data
+android.add_assets = src/data
 
 # (str) Application versioning
-version = 0.1.1
+version = 1.0.0
 
 # (list) Application requirements
 p4a.branch = master
@@ -30,15 +30,15 @@ requirements = python3,kivy==2.3.1,filetype
 orientation = portrait
 
 # (bool) Indicate if the application should be fullscreen
-fullscreen = 0
+fullscreen = 1
 
 # (str) Custom text/icon colors if used in your app
 # color = 0.8,0.65,0.1,1
 # text_color = 0.1,0.1,0.1,1
 
 # (str) Presplash & icon paths (optional)
-presplash.filename = data/images/icon.png
-icon.filename = data/images/icon.png
+presplash.filename = src/data/images/icon.png
+icon.filename = src/data/images/icon.png
 
 
 [buildozer]
@@ -77,3 +77,13 @@ android.copy_libs = 1
 
 # (bool) Enable Android auto backup feature (API >=23)
 android.allow_backup = True
+
+# Build
+# source buildozer-venv/bin/activate
+# buildozer android debug
+
+# Get Android logs
+# Tap 7 times on build number
+# Turn on USB debugging
+# Open terminal at cadence_beat
+# ./adb logcat -s python

@@ -29,12 +29,12 @@
         RoundedRectangle:
             pos: root.x, root.y + root.height * 0.5 + (2 if root.state == 'down' else 0)
             size: root.width, root.height * 0.5
-            radius: [12, 12, 12, 12]
+            radius: [dp(12), dp(12), dp(12), dp(12)]
 
     Label:
         text: root.text
         color: root.text_color
-        font_size: 18
+        font_size: sp(18)
         bold: True
         size: self.texture_size
         pos: root.x + (root.width - self.texture_size[0]) / 2, root.y + (root.height - self.texture_size[1]) / 2 + (2 if root.state == 'down' else 0)

@@ -45,6 +45,12 @@ class RunMetronome(FloatLayout):
             height=dp(80),
             pos_hint={"center_x": 0.5, "center_y": 0.65}
         )
+        self.next_phase_label = Label(
+            font_size=dp(25),
+            size_hint=(1, None),
+            height=dp(40),
+            pos_hint={"top": 0.4}
+        )
         self.cycle_label = Label(
             font_size=dp(25),
             size_hint=(1, None),
@@ -53,6 +59,7 @@ class RunMetronome(FloatLayout):
         )
         self.add_widget(self.phase_label)
         self.add_widget(self.timer_label)
+        self.add_widget(self.next_phase_label)
         self.add_widget(self.cycle_label)
 
         # --- Top Row: Pause Button ---
@@ -99,9 +106,11 @@ class RunMetronome(FloatLayout):
                 self._sound_pos = self.sound.get_pos()
                 self.sound.stop()
             else:
-                self.sound.play()
-                if self._sound_pos:
-                    self.sound.seek(self._sound_pos)
+                _, _, ticking = self.phases[self.current_phase_index]
+                if ticking:
+                    self.sound.play()
+                    if self._sound_pos:
+                        self.sound.seek(self._sound_pos)
 
         if self.countdown_started:
             if self.paused:
@@ -137,6 +146,9 @@ class RunMetronome(FloatLayout):
 
         # Update labels
         self.phase_label.text = f"{name}: {duration // config.SEC_IN_MIN}:{duration % config.SEC_IN_MIN:02d}"
+        if self.current_phase_index + 1 < len(self.phases):
+            next_name, next_duration, _ = self.phases[self.current_phase_index + 1]
+            self.next_phase_label.text = f"Next: {next_name}: {next_duration // config.SEC_IN_MIN}:{next_duration % config.SEC_IN_MIN:02d}"
         minutes, seconds = divmod(remaining, config.SEC_IN_MIN)
         self.timer_label.text = f"{minutes}:{seconds:02d}"
 
