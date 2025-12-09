@@ -1,3 +1,5 @@
+import logging
+
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
@@ -85,6 +87,7 @@ class ReviewMetronome(BoxLayout):
         return f"{value:02d}"
 
     def on_button_press(self, instance):
+        logging.debug("Tapped on '%s'", instance.text)
         if instance.text == "Continue":
             new_state = run_metronome.RunMetronome(self.app, self.metronome_values)
             self.app.enter_state(new_state)

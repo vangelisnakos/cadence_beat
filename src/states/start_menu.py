@@ -1,3 +1,5 @@
+import logging
+
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.app import App
@@ -18,7 +20,7 @@ class StartMenu(FloatLayout):
             padding=dp(50),
             size_hint=(0.8, None),
             height=dp(240),
-            pos_hint={"center_x": 0.5, "center_y": 0.5}
+            pos_hint={"center_x": 0.5, "center_y": 0.425}
         )
 
         self.buttons = []
@@ -35,6 +37,7 @@ class StartMenu(FloatLayout):
         self.add_widget(self.layout)
 
     def on_button_press(self, instance):
+        logging.debug("Tapped on '%s'", instance.text)
         if instance.text == "Create Metronome":
             new_state = create_metronome.CreateMetronome(self.app)
             self.app.enter_state(new_state)
@@ -42,3 +45,5 @@ class StartMenu(FloatLayout):
             print("Settings")
         elif instance.text == "Quit":
             App.get_running_app().stop()
+        else:
+            logging.error("Unknown button name: %s", instance.text)

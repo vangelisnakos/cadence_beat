@@ -52,6 +52,9 @@ warn_on_root = 1
 
 [android]
 
+android.services = audio
+android.service_files = src/service_audio.py:service_audio.py
+
 # (int) Target Android API
 android.api = 31
 

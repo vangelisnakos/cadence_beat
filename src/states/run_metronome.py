@@ -1,13 +1,21 @@
+import logging
+
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.metrics import dp
+from kivy.utils import platform
 import os
 from kivy.clock import Clock
 from kivy.base import EventLoop
 from kivy.core.audio import SoundLoader
 EventLoop.idle()
+
+if platform == "android":
+    from android import AndroidService  # noqa
+else:
+    AndroidService = None
 
 from packages import utils, config, metronome_generator
 
@@ -98,8 +106,11 @@ class RunMetronome(FloatLayout):
 
     # ----------------- UI Callbacks -----------------
     def on_pause(self, instance):
+        logging.debug("Tapped on '%s'", instance.text)
         self.paused = not self.paused
-        self.pause_button.text = "Resume" if self.paused else "Pause"
+        counter = "Resume" if self.paused else "Pause"
+        self.pause_button.text = counter
+        logging.debug("Counter: %s", counter)
 
         if self.sound:
             if self.paused:
@@ -108,7 +119,7 @@ class RunMetronome(FloatLayout):
             else:
                 _, _, ticking = self.phases[self.current_phase_index]
                 if ticking:
-                    self.sound.play()
+                    self.play_sound("beat")
                     if self._sound_pos:
                         self.sound.seek(self._sound_pos)
 
@@ -117,14 +128,16 @@ class RunMetronome(FloatLayout):
                 self._countdown_pos = self.countdown_sound.get_pos()
                 self.countdown_sound.stop()
             else:
-                self.countdown_sound.play()
+                self.play_sound("countdown")
                 if self._countdown_pos:
                     self.countdown_sound.seek(self._countdown_pos)
 
     def on_back(self, instance):
+        logging.debug("Tapped on '%s'", instance.text)
         self.go_back_phase()
 
     def on_continue(self, instance):
+        logging.debug("Tapped on '%s'", instance.text)
         self.advance_phase()
 
     # ----------------- UI / Timer -----------------
@@ -141,7 +154,7 @@ class RunMetronome(FloatLayout):
 
         # Countdown audio
         if remaining == 5 and not self.countdown_started and self.countdown_sound:
-            self.countdown_sound.play()
+            self.play_sound("countdown")
             self.countdown_started = True
 
         # Update labels
@@ -149,6 +162,8 @@ class RunMetronome(FloatLayout):
         if self.current_phase_index + 1 < len(self.phases):
             next_name, next_duration, _ = self.phases[self.current_phase_index + 1]
             self.next_phase_label.text = f"Next: {next_name}: {next_duration // config.SEC_IN_MIN}:{next_duration % config.SEC_IN_MIN:02d}"
+        else:
+            self.next_phase_label.text = ""
         minutes, seconds = divmod(remaining, config.SEC_IN_MIN)
         self.timer_label.text = f"{minutes}:{seconds:02d}"
 
@@ -160,7 +175,7 @@ class RunMetronome(FloatLayout):
             self.cycle_label.text = ""
 
         if remaining <= 0:
-            self.end_sound.play()
+            self.play_sound("end")
             self.advance_phase()
 
     def update_background(self, phase_name):
@@ -184,9 +199,10 @@ class RunMetronome(FloatLayout):
             audio = metronome_generator.generate_metronome_audio(self.metronome_values["bpm"], duration)
             if audio:
                 self.sound = audio
-                self.sound.play()
+                self.play_sound("beat",self.metronome_values["bpm"], duration)
 
     def advance_phase(self):
+        logging.debug("Advancing phase...")
         self.reset_phase()
         self.current_phase_index += 1
         if self.current_phase_index >= len(self.phases):
@@ -195,6 +211,7 @@ class RunMetronome(FloatLayout):
             self.start_phase_audio()
 
     def go_back_phase(self):
+        logging.debug("Going back phase...")
         self.reset_phase()
         if self.current_phase_index > 0:
             self.current_phase_index -= 1
@@ -239,6 +256,30 @@ class RunMetronome(FloatLayout):
         sound = os.path.join(base, f"{name}.wav")
         return SoundLoader.load(sound)
 
+    def play_sound(self, sound_name: str, bpm: int=0, duration: float=0.0):
+        if platform == "android":
+            sound_data = sound_name
+            if bpm and duration:
+                sound_data += f"|{bpm}|{duration}"
+            service = AndroidService("audio", sound_data)  # noqa
+            logging.debug("Attempting to enter Android Service: %s", service)
+            service.start()
+            return
+        if sound_name == "beat":
+            if bpm and duration:
+                audio = metronome_generator.generate_metronome_audio(bpm, duration)
+                if audio:
+                    self.sound = audio
+                    self.sound.play()
+            else:
+                self.sound.play()
+        elif sound_name == "countdown":
+            self.countdown_sound.play()
+        elif sound_name == "end":
+            self.end_sound.play()
+        else:
+            logging.error("Unknown sound name %s", sound_name)
+
     # ----------------- Stop / Exit -----------------
     def stop(self):
         if self.sound:
@@ -248,4 +289,5 @@ class RunMetronome(FloatLayout):
 
     def exit_state(self):
         self.stop()
+        self.app.exit_state()
         self.app.exit_state()
