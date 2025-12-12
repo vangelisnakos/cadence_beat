@@ -5,17 +5,12 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.metrics import dp
-from kivy.utils import platform
 import os
 from kivy.clock import Clock
 from kivy.base import EventLoop
 from kivy.core.audio import SoundLoader
 EventLoop.idle()
 
-if platform == "android":
-    from android import AndroidService  # noqa
-else:
-    AndroidService = None
 
 from packages import utils, config, metronome_generator
 
@@ -134,10 +129,14 @@ class RunMetronome(FloatLayout):
 
     def on_back(self, instance):
         logging.debug("Tapped on '%s'", instance.text)
+        if self.paused:
+            self.on_pause(instance)
         self.go_back_phase()
 
     def on_continue(self, instance):
         logging.debug("Tapped on '%s'", instance.text)
+        if self.paused:
+            self.on_pause(instance)
         self.advance_phase()
 
     # ----------------- UI / Timer -----------------
@@ -257,14 +256,6 @@ class RunMetronome(FloatLayout):
         return SoundLoader.load(sound)
 
     def play_sound(self, sound_name: str, bpm: int=0, duration: float=0.0):
-        if platform == "android":
-            sound_data = sound_name
-            if bpm and duration:
-                sound_data += f"|{bpm}|{duration}"
-            service = AndroidService("audio", sound_data)  # noqa
-            logging.debug("Attempting to enter Android Service: %s", service)
-            service.start()
-            return
         if sound_name == "beat":
             if bpm and duration:
                 audio = metronome_generator.generate_metronome_audio(bpm, duration)
