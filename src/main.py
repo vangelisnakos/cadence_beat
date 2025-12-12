@@ -1,8 +1,10 @@
-import os
+import logging
+
 from kivy.app import App
 from kivy.uix.image import Image
 from kivy.core.window import Window
 from kivy.uix.floatlayout import FloatLayout
+from kivy.utils import platform
 from kivy.lang import Builder
 from pathlib import Path
 
@@ -44,7 +46,10 @@ class MainWidget(FloatLayout):
         return super().on_touch_up(touch)
 
     def create_window(self):
-        Window.size = (config.BOARD_WIDTH, config.BOARD_HEIGHT)
+        if platform == "android":
+            Window.fullscreen = True
+        else:
+            Window.size = (config.BOARD_WIDTH, config.BOARD_HEIGHT)
         Window.title = "CadenceBeat"
         Window.bind(on_key_down=self.on_key_down)
 
@@ -54,6 +59,8 @@ class MainWidget(FloatLayout):
         self.add_widget(self.bg_image, index=0)
 
     def enter_state(self, new_state):
+        state_name = new_state.__class__.__name__
+        logging.debug("Enter %s state", state_name)
         for state in self.states_stack:
             if state in self.children:
                 self.remove_widget(state)
@@ -64,7 +71,9 @@ class MainWidget(FloatLayout):
         for state in self.states_stack:
             if state in self.children:
                 self.remove_widget(state)
-        self.states_stack.pop()
+        old_state = self.states_stack.pop()
+        state_name = old_state.__class__.__name__
+        logging.debug("Exit %s state", state_name)
         new_state = self.add_widget(self.states_stack[-1])
         if new_state is not None:
             self.add_widget(new_state)

@@ -1,9 +1,8 @@
 from kivy.metrics import dp
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.button import Button
-
-from packages import config, number_stepper, slider_object, utils
+import logging
+from packages import number_stepper, slider_object, utils
 from states import review_metronome
 
 
@@ -41,24 +40,24 @@ class CreateMetronome(FloatLayout):
             0, 20, start_value=0, label_name="Cooldown"
         )
         self.run_minutes_stepper = number_stepper.Stepper(
-            0, 20, start_value=0, label_name="Minutes"
+            0, 20, start_value=0, label_name="Run Minutes"
         )
         self.run_seconds_stepper = number_stepper.Stepper(
             0,
             60,
             step=10,
             start_value=0,
-            label_name="Seconds",
+            label_name="Run Seconds",
         )
         self.rest_minutes_stepper = number_stepper.Stepper(
-            0, 20, start_value=0, label_name="Minutes"
+            0, 20, start_value=0, label_name="Rest Minutes"
         )
         self.rest_seconds_stepper = number_stepper.Stepper(
             0,
             60,
             step=10,
             start_value=0,
-            label_name="Seconds",
+            label_name="Rest Seconds",
         )
         self.cycles_stepper = number_stepper.Stepper(
             1, 20, start_value=1, label_name="Cycles"
@@ -128,6 +127,7 @@ class CreateMetronome(FloatLayout):
         self.app.enter_state(new_state)
 
     def on_button_press(self, instance):
+        logging.debug("Tapped on '%s'", instance.text)
         if instance.text == "Continue":
             self.go_to_review()
         elif instance.text == "Back":

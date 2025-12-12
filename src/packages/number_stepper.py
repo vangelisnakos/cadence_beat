@@ -1,3 +1,5 @@
+import logging
+
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
@@ -74,11 +76,13 @@ class Stepper(BoxLayout):
         self.add_widget(self.middle_layout)
 
     def increment(self, instance):
+        logging.debug("Tapped on '+' of %s", self.label_name)
         if self.value < self.max_value:
             self.value = min(self.max_value, self.value + self.step)
             self.value_label.text = str(self.value)
 
     def decrement(self, instance):
+        logging.debug("Tapped on '-' of %s", self.label_name)
         if self.value > self.min_value:
             self.value = max(self.min_value, self.value - self.step)
             self.value_label.text = str(self.value)
